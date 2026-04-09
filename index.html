@@ -345,7 +345,11 @@ input:focus,select:focus,textarea:focus{border-color:var(--purple)}
       <button class="btn btn-primary btn-full" onclick="signIn()" style="margin-top:4px">Sign in</button>
     </div>
     <div id="signup-form" style="display:none">
-      <div class="form-row"><label>Display name</label><input type="text" id="signup-name" placeholder="Your name (shown to group)"></div>
+      <div class="form-row">
+        <label>Your in-game name</label>
+        <input type="text" id="signup-name" placeholder="e.g. Tim, Tim-the-best, Jordan…" autocomplete="nickname">
+        <div style="font-size:11px;color:var(--text2);margin-top:5px">This is how you'll appear as a player option for everyone in the group. Choose whatever you want to be called.</div>
+      </div>
       <div class="form-row"><label>Email</label><input type="email" id="signup-email" placeholder="you@email.com" autocomplete="email"></div>
       <div class="form-row"><label>Password</label><input type="password" id="signup-password" placeholder="At least 6 characters" autocomplete="new-password"></div>
       <button class="btn btn-primary btn-full" onclick="signUp()" style="margin-top:4px">Create account</button>
@@ -511,7 +515,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--purple)}
       </div>
       <div class="profile-row">
         <div style="flex:1">
-          <div class="form-row" style="margin-bottom:0"><label>Update display name</label><input type="text" id="update-name" placeholder="New name"></div>
+          <div class="form-row" style="margin-bottom:4px"><label>Change your in-game name</label><input type="text" id="update-name" placeholder="New name"></div>
+          <div style="font-size:11px;color:var(--text2)">This is how you appear as a player option for the group.</div>
         </div>
         <button class="btn btn-sm btn-primary" onclick="updateDisplayName()" style="margin-top:18px;flex-shrink:0">Save</button>
       </div>
@@ -966,16 +971,14 @@ function renderHome() {
 }
 
 // ============================================================
-//  PLAYER ROSTER — known regulars + any from Firebase
+//  PLAYER ROSTER — built from Firebase accounts only
 // ============================================================
-const REGULARS = ['Josh','Tim','Jordan','Nate','Ethan'];
-
 function getKnownPlayers() {
-  // Merge regulars with any registered Firebase players
-  const fromFirebase = Object.values(allPlayers).map(p=>p.name).filter(Boolean);
-  const all = [...REGULARS];
-  fromFirebase.forEach(n => { if(!all.find(r=>r.toLowerCase()===n.toLowerCase())) all.push(n); });
-  return all;
+  // Returns display names of all registered accounts, sorted alphabetically
+  return Object.values(allPlayers)
+    .map(p => p.name)
+    .filter(Boolean)
+    .sort((a,b) => a.localeCompare(b));
 }
 
 // ============================================================
@@ -1454,9 +1457,11 @@ function renderMtgTracker() {
     return `<div class="mtg-player${isRot?' rot180':''}${dead?' elim':''}" id="mp${i}" style="background:${p.color}">
       <div class="mtg-tap-zone">
         <div class="mtg-tap-half"
-          ontouchstart="startHold(${i},${topDir})" ontouchend="stopHold()" onmousedown="startHold(${i},${topDir})" onmouseup="stopHold()" onmouseleave="stopHold()">▲</div>
+          ontouchstart="startHold(${i},${topDir});event.preventDefault()" ontouchend="stopHold();event.preventDefault()" ontouchcancel="stopHold()"
+          onmousedown="startHold(${i},${topDir})" onmouseup="stopHold()" onmouseleave="stopHold()">▲</div>
         <div class="mtg-tap-half"
-          ontouchstart="startHold(${i},${botDir})" ontouchend="stopHold()" onmousedown="startHold(${i},${botDir})" onmouseup="stopHold()" onmouseleave="stopHold()">▼</div>
+          ontouchstart="startHold(${i},${botDir});event.preventDefault()" ontouchend="stopHold();event.preventDefault()" ontouchcancel="stopHold()"
+          onmousedown="startHold(${i},${botDir})" onmouseup="stopHold()" onmouseleave="stopHold()">▼</div>
       </div>
       <div class="mtg-inner-content">
         <div class="mtg-player-name">${p.name}</div>
@@ -1470,12 +1475,26 @@ function renderMtgTracker() {
   }).join('');
 }
 
-let holdTimer=null, holdInterval=null;
-function startHold(idx,dir){
-  changeLife(idx,dir);
-  holdTimer=setTimeout(()=>{holdInterval=setInterval(()=>changeLife(idx,dir),80);},400);
+let holdTimer=null, holdInterval=null, holdActive=false;
+
+function startHold(idx, dir) {
+  if(holdActive) return;
+  holdActive = true;
+  changeLife(idx, dir);
+  // Wait 600ms before starting repeat, then repeat every 180ms (much calmer than before)
+  holdTimer = setTimeout(() => {
+    holdInterval = setInterval(() => changeLife(idx, dir), 180);
+  }, 600);
 }
-function stopHold(){ clearTimeout(holdTimer); clearInterval(holdInterval); holdTimer=null; holdInterval=null; }
+
+function stopHold() {
+  clearTimeout(holdTimer);
+  clearInterval(holdInterval);
+  holdTimer = null;
+  holdInterval = null;
+  // Small delay before allowing next press to prevent accidental double-fire
+  setTimeout(() => { holdActive = false; }, 50);
+}
 
 function changeLife(idx, dir) {
   const p = mtgState.players[idx]; if(p.eliminated) return;
