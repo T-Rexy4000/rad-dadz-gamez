@@ -1322,28 +1322,36 @@ function startMtgGame() {
 //  MTG TRACKER
 // ============================================================
 
-// For n players, return per-player rotation in degrees (clockwise seating order)
-// 4 players: P0=left(90°CW), P1=top(180°), P2=right(270°CW), P3=bottom(0°)
-// 3 players: P0=top-left(180°), P1=top-right(180°), P2=bottom(0°)  
-// 5 players: P0=top-left(180°), P1=top-right(180°), P2=bottom-left(0°), P3=bottom-right(0°), P4=right(270°)
-// 2 players: P0=top(180°), P1=bottom(0°)
+// Grid positions and rotations follow CLOCKWISE selection order:
+// 4p: P0=top-left(faces left, 90°), P1=top-right(faces up, 180°),
+//     P2=bottom-right(faces right, 270°), P3=bottom-left(faces down, 0°)
+// 3p: P0=top-left(180°), P1=top-right(180°), P2=bottom spanning full width(0°)
+// 5p: P0=top-left(180°), P1=top-right(180°), P2=bottom-right(270°),
+//     P3=bottom-left(0°), P4=middle spanning full width(0°) — or adjust as needed
+// 2p: P0=top(180°), P1=bottom(0°)
 function getPlayerRotations(n) {
   if(n===2) return [180, 0];
   if(n===3) return [180, 180, 0];
   if(n===4) return [90, 180, 270, 0];
-  if(n===5) return [180, 180, 0, 0, 270];
+  if(n===5) return [180, 180, 270, 0, 0];
   if(n===6) return [180, 180, 180, 0, 0, 0];
   return Array(n).fill(0);
 }
 
 function getGridStyle(n) {
-  if(n===2) return {cols:'1fr', rows:'1fr 1fr'};
+  if(n===2) return {cols:'1fr', rows:'1fr 1fr', areas:'"p0" "p1"'};
+  // 3p: two across the top, one spanning full bottom
   if(n===3) return {cols:'1fr 1fr', rows:'1fr 1fr',
     areas:'"p0 p1" "p2 p2"'};
-  if(n===4) return {cols:'1fr 1fr', rows:'1fr 1fr'};
+  // 4p CLOCKWISE: top-left=P0, top-right=P1, bottom-right=P2, bottom-left=P3
+  if(n===4) return {cols:'1fr 1fr', rows:'1fr 1fr',
+    areas:'"p0 p1" "p3 p2"'};
+  // 5p: two top, middle span, two bottom
   if(n===5) return {cols:'1fr 1fr', rows:'1fr 1fr 1fr',
-    areas:'"p0 p1" "p2 p3" "p4 p4"'};
-  if(n===6) return {cols:'1fr 1fr', rows:'1fr 1fr 1fr'};
+    areas:'"p0 p1" "p4 p4" "p3 p2"'};
+  // 6p: three top (rotated), three bottom (normal)
+  if(n===6) return {cols:'1fr 1fr 1fr', rows:'1fr 1fr',
+    areas:'"p0 p1 p2" "p5 p4 p3"'};
   return {cols:'1fr 1fr', rows:`repeat(${Math.ceil(n/2)},1fr)`};
 }
 
@@ -1389,8 +1397,7 @@ function renderMtgTracker() {
 
   grid.style.gridTemplateColumns = gs.cols;
   grid.style.gridTemplateRows = gs.rows;
-  if(gs.areas) grid.style.gridTemplateAreas = gs.areas;
-  else grid.style.gridTemplateAreas = '';
+  grid.style.gridTemplateAreas = gs.areas || '';
 
   grid.innerHTML = mtgState.players.map((p, i) => {
     const low = p.life<=5 && p.life>0;
@@ -1404,8 +1411,8 @@ function renderMtgTracker() {
     const cmdStrip = buildCmdStrip(p, i, mtgState.players);
     const poisonShow = p.poison>0;
 
-    // grid-area for 3 and 5 player special layouts
-    const areaStyle = gs.areas ? `grid-area:p${i};` : '';
+    // All layouts now use grid-area
+    const areaStyle = `grid-area:p${i};`;
 
     return `<div class="mtg-player${dead?' elim':''}" id="mp${i}" style="${areaStyle}background:${p.color}">
 
