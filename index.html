@@ -1,0 +1,1973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#534AB7">
+<title>Game Night</title>
+
+<!-- =====================================================
+     PASTE YOUR FIREBASE CONFIG BELOW (Step 6 of setup guide)
+     ===================================================== -->
+<script>
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyCnSeyQiCE30C2BMbkKU1eoolNxPCD46R0",
+    authDomain: "game-night-for-rad-dadz.firebaseapp.com",
+    projectId: "game-night-for-rad-dadz",
+    storageBucket: "game-night-for-rad-dadz.firebasestorage.app",
+    messagingSenderId: "552326855295",
+    appId: "1:552326855295:web:7f862706d6e7eb71549d4a"
+  };
+</script>
+<!-- ===================================================== -->
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --purple:#534AB7;--purple-dark:#3C3489;--purple-light:#EEEDFE;
+  --gold:#c9a84c;--gold-light:#e8c96a;
+  --bg:#f5f4f8;--card:#fff;--border:#e2e0ea;
+  --text:#1a1a2e;--text2:#6b6880;--text3:#a09daf;
+  --green:#3B6D11;--green-bg:#EAF3DE;
+  --red:#A32D2D;--red-bg:#FCEBEB;
+  --amber:#854F0B;--amber-bg:#FAEEDA;
+  --radius:14px;--radius-sm:10px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+.app{max-width:480px;margin:0 auto;padding-bottom:80px;min-height:100vh}
+
+/* NAV */
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--card);border-top:1px solid var(--border);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+.nav-btn{flex:1;padding:10px 4px 8px;border:none;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:var(--text2);transition:color 0.15s}
+.nav-btn.active{color:var(--purple)}
+.nav-btn svg{width:22px;height:22px;stroke-width:1.5}
+
+/* PAGES */
+.page{display:none;padding:16px;padding-top:20px}
+.page.active{display:block}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px}
+.card-dark{background:#1a1a2e;border-color:#2e2e4e}
+
+/* TYPOGRAPHY */
+h1{font-size:22px;font-weight:600;color:var(--text);margin-bottom:4px}
+h2{font-size:16px;font-weight:600;color:var(--text);margin-bottom:10px}
+.subtitle{font-size:13px;color:var(--text2);margin-bottom:16px}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 18px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--card);font-size:14px;font-weight:500;color:var(--text);cursor:pointer;transition:all 0.15s;font-family:inherit}
+.btn:active{transform:scale(0.97)}
+.btn-primary{background:var(--purple);border-color:var(--purple);color:#fff}
+.btn-primary:hover{background:var(--purple-dark)}
+.btn-danger{color:var(--red);border-color:#f0b0b0}
+.btn-sm{padding:7px 13px;font-size:13px}
+.btn-full{width:100%}
+.btn-gold{background:var(--gold);border-color:var(--gold);color:#000;font-weight:600}
+
+/* FORM */
+.form-row{margin-bottom:12px}
+label{font-size:13px;color:var(--text2);display:block;margin-bottom:5px;font-weight:500}
+input,select,textarea{width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--card);font-size:14px;color:var(--text);outline:none;font-family:inherit;transition:border-color 0.15s}
+input:focus,select:focus,textarea:focus{border-color:var(--purple)}
+.row{display:flex;gap:8px;align-items:center}
+
+/* BADGES */
+.badge{display:inline-block;padding:3px 9px;border-radius:99px;font-size:11px;font-weight:600}
+.badge-win{background:var(--green-bg);color:var(--green)}
+.badge-loss{background:var(--red-bg);color:var(--red)}
+.badge-gold{background:var(--amber-bg);color:var(--amber)}
+.badge-purple{background:var(--purple-light);color:var(--purple)}
+
+/* METRICS */
+.metric-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.metric{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 8px;text-align:center}
+.metric-val{font-size:24px;font-weight:700;color:var(--purple)}
+.metric-lbl{font-size:11px;color:var(--text2);margin-top:2px}
+
+/* SECTION HEADER */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+
+/* AVATAR */
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--purple-light);color:var(--purple);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+
+/* TOAST */
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:var(--purple);color:#fff;padding:11px 22px;border-radius:var(--radius-sm);font-size:14px;font-weight:500;z-index:500;opacity:0;transition:opacity 0.2s;pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center}
+
+/* BANNER */
+.banner{background:var(--purple-light);border:1px solid var(--purple);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;cursor:pointer}
+.banner-icon{font-size:18px;flex-shrink:0}
+.banner-text{font-size:13px;color:var(--purple);font-weight:500;flex:1}
+.banner-close{font-size:16px;color:var(--purple);background:none;border:none;cursor:pointer;padding:0 4px}
+
+/* GAME TYPE SELECT */
+.game-type-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.game-type-card{border:1.5px solid var(--border);border-radius:var(--radius);padding:20px 12px;text-align:center;cursor:pointer;transition:all 0.15s;background:var(--card)}
+.game-type-card:hover,.game-type-card:active{background:#f8f7ff}
+.game-type-card.selected{border-color:var(--purple);background:var(--purple-light)}
+.game-type-card .icon{font-size:30px;margin-bottom:8px}
+.game-type-card .gtitle{font-size:14px;font-weight:600;color:var(--text)}
+.game-type-card .gdesc{font-size:11px;color:var(--text2);margin-top:3px}
+
+/* CALENDAR */
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-day-head{font-size:11px;color:var(--text2);text-align:center;padding:4px 0;font-weight:600}
+.cal-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;font-size:13px;cursor:pointer;position:relative;color:var(--text);transition:background 0.1s}
+.cal-day:hover{background:#f0effe}
+.cal-day.today{background:var(--purple-light);color:var(--purple);font-weight:700}
+.cal-day.proposed{background:#e8f5e9}
+.cal-day.has-event{background:var(--purple);color:#fff;font-weight:600}
+.cal-day.blocked{background:#fff0f0;color:var(--red)}
+.cal-day.preferred::after{content:'★';position:absolute;bottom:1px;font-size:7px;color:var(--gold)}
+.cal-day.other-month{color:var(--text3)}
+.avail-bar{display:flex;gap:2px;margin-top:2px}
+.avail-dot{width:4px;height:4px;border-radius:50%}
+
+/* SCORE TRACKER */
+.score-counter{display:flex;align-items:center;gap:10px}
+.score-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--bg);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text);font-weight:300}
+.score-btn:active{background:var(--purple-light)}
+.score-val{font-size:22px;font-weight:700;min-width:40px;text-align:center;color:var(--text)}
+
+/* MTG FULLSCREEN */
+.mtg-screen{position:fixed;inset:0;z-index:200;background:#0d0d14;display:none;flex-direction:column}
+.mtg-screen.open{display:flex}
+.mtg-topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#13131f;border-bottom:1px solid #2a2a3e;flex-shrink:0;min-height:48px}
+.mtg-title{font-size:14px;font-weight:600;color:var(--gold-light)}
+.mtg-pill{font-size:10px;color:#888;background:#1e1e2e;border:1px solid #2e2e4e;border-radius:99px;padding:2px 8px;margin-left:6px}
+.mtg-close-btn{background:#1e1e2e;border:1px solid #3a3a5e;border-radius:8px;color:#aaa;padding:6px 12px;font-size:12px;cursor:pointer;font-family:inherit}
+
+/* PLAYER GRID */
+.mtg-players-grid{flex:1;display:grid;overflow:hidden;position:relative}
+
+/* Each player cell — a positioning context */
+.mtg-player{position:relative;border:1px solid #1a1a28;user-select:none;overflow:hidden;transition:opacity 0.3s}
+.mtg-player.elim{opacity:0.28;filter:grayscale(1)}
+
+/* Tap zones — always fill the raw cell, split vertically in raw coordinates.
+   Dir correction happens in JS based on rotation angle. */
+.mtg-tap-zone{position:absolute;inset:0;display:grid;grid-template-rows:1fr 1fr;z-index:3}
+.mtg-tap-half{cursor:pointer;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.03);font-size:16px;transition:background 0.1s}
+.mtg-tap-half:active{background:rgba(255,255,255,0.07)}
+
+/* Rotated content wrapper — sits inside the cell, same size, rotates everything */
+.mtg-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;z-index:2;padding:8px 4px 0}
+
+/* Name — large and easy to read from across a table */
+.mtg-player-name{font-size:22px;font-weight:800;color:rgba(255,255,255,0.75);letter-spacing:0.5px;margin-bottom:6px;text-align:center;max-width:92%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 4px rgba(0,0,0,0.6)}
+
+/* Life total */
+.mtg-life-val{font-size:72px;font-weight:800;color:#f0f0f5;line-height:1;transition:transform 0.08s;text-align:center;text-shadow:0 2px 8px rgba(0,0,0,0.5)}
+.mtg-life-val.bump{transform:scale(1.12)}
+.mtg-life-val.low{color:#e55}
+.mtg-life-val.dead{color:#2a2a3a}
+.mtg-life-sub{font-size:10px;color:#444;margin-top:2px;text-align:center}
+
+/* Delta flash — top-right of the rotated inner box */
+.mtg-delta{position:absolute;top:6px;right:8px;font-size:15px;font-weight:700;color:var(--gold-light);opacity:0;transition:opacity 0.3s;pointer-events:none}
+.mtg-delta.show{opacity:1}
+
+/* Bottom info bar — lives inside .mtg-inner so it rotates with everything else.
+   Pushed to the visual bottom using margin-top:auto */
+.mtg-bottom-bar{width:100%;margin-top:auto;display:flex;flex-direction:column;gap:0;pointer-events:all}
+
+/* Poison row */
+.mtg-poison-row{display:flex;align-items:center;justify-content:center;gap:5px;padding:3px 8px;background:rgba(150,50,200,0.15);border-top:1px solid rgba(150,50,200,0.25);display:none}
+.mtg-poison-row.show{display:flex}
+.mtg-poison-row-label{font-size:10px;color:#cc88ff}
+.mtg-poison-row-val{font-size:12px;font-weight:700;color:#cc88ff}
+
+/* Commander damage strip */
+.mtg-cmd-strip{width:100%;background:rgba(0,0,0,0.6);display:flex;border-top:1px solid rgba(255,255,255,0.07)}
+.mtg-cmd-chip{flex:1;display:flex;flex-direction:column;align-items:center;padding:4px 2px;border-right:1px solid rgba(255,255,255,0.06);cursor:pointer;pointer-events:all;min-width:0}
+.mtg-cmd-chip:last-child{border-right:none}
+.mtg-cmd-chip-from{font-size:9px;color:#666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;text-align:center}
+.mtg-cmd-chip-val{font-size:14px;font-weight:800;color:#f0f0f5;line-height:1.1}
+.mtg-cmd-chip-val.danger{color:#e55}
+.mtg-cmd-chip-label{font-size:7px;color:#555;text-transform:uppercase;letter-spacing:0.3px}
+
+/* Controls bar */
+.mtg-controls{background:#13131f;border-top:1px solid #2a2a3e;padding:8px 10px;display:flex;gap:6px;align-items:center;flex-shrink:0;flex-wrap:wrap}
+.mtg-ctrl{flex:1;min-width:60px;padding:8px 6px;background:#1e1e2e;border:1px solid #2e2e4e;border-radius:8px;color:#bbb;font-size:11px;font-weight:500;text-align:center;cursor:pointer;font-family:inherit;transition:background 0.1s}
+.mtg-ctrl:hover{background:#252535}
+.mtg-result{font-size:12px;color:var(--gold);padding:4px 6px;min-width:50px;text-align:center}
+
+/* MTG SETUP */
+.mtg-setup{position:fixed;inset:0;z-index:210;background:#0d0d14;display:none;flex-direction:column;padding:20px;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom)}
+.mtg-setup.open{display:flex}
+.mtg-setup-title{font-size:22px;font-weight:700;color:var(--gold-light);margin-bottom:4px}
+.mtg-setup-sub{font-size:13px;color:#666;margin-bottom:20px}
+.life-opts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:6px}
+.life-opt{padding:12px 6px;background:#1e1e2e;border:1px solid #2e2e4e;border-radius:10px;color:#aaa;font-size:15px;font-weight:600;text-align:center;cursor:pointer;transition:all 0.15s}
+.life-opt.sel{background:#2e2848;border-color:var(--gold);color:var(--gold-light)}
+.mtg-format-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.mtg-format-opt{padding:12px;background:#1e1e2e;border:1.5px solid #2e2e4e;border-radius:10px;text-align:center;cursor:pointer}
+.mtg-format-opt.sel{border-color:var(--gold);background:#1e1c2e}
+.mtg-format-opt .fname{font-size:14px;font-weight:600;color:#ddd}
+.mtg-format-opt .fdesc{font-size:11px;color:#666;margin-top:3px}
+.mtg-p-setup{background:#1a1a2a;border:1px solid #2a2a3e;border-radius:10px;padding:10px 12px;margin-bottom:8px}
+.mtg-p-setup label{color:#666;font-size:12px}
+.mtg-p-setup input{background:#232333;border-color:#2e2e4e;color:#f0f0f5;margin-top:5px}
+.mtg-p-setup input:focus{border-color:var(--gold)}
+.setup-section-label{font-size:12px;color:#666;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+
+/* CMD PANEL (slide-up sheet) */
+.cmd-panel{position:fixed;inset:0;z-index:220;background:rgba(0,0,0,0.82);display:none;align-items:flex-end;justify-content:center}
+.cmd-panel.open{display:flex}
+.cmd-inner{width:100%;max-width:480px;background:#1a1a2a;border-radius:18px 18px 0 0;padding:16px 16px 36px;border-top:1px solid #2e2e4e;max-height:85vh;overflow-y:auto}
+.cmd-title{font-size:15px;font-weight:600;color:var(--gold-light);margin-bottom:4px}
+.cmd-sub{font-size:12px;color:#555;margin-bottom:14px}
+.cmd-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #1e1e2e}
+.cmd-row:last-child{border-bottom:none}
+.cmd-name{font-size:14px;color:#ccc;flex:1}
+.cmd-ctr{display:flex;align-items:center;gap:10px}
+.cmd-val{font-size:20px;font-weight:700;color:#f0f0f5;min-width:32px;text-align:center}
+.cmd-val.danger{color:#e55}
+.cmd-btn{width:34px;height:34px;border-radius:50%;background:#232333;border:1px solid #3a3a5e;color:#ccc;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+/* AWARDS */
+.awards-screen{position:fixed;inset:0;z-index:300;background:linear-gradient(160deg,#0d0d14 0%,#1a1030 100%);display:none;flex-direction:column;overflow-y:auto;padding:20px;padding-bottom:40px}
+.awards-screen.open{display:flex}
+.award-card{background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.25);border-radius:var(--radius);padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:14px}
+.award-icon{font-size:32px;flex-shrink:0}
+.award-name{font-size:15px;font-weight:700;color:var(--gold-light)}
+.award-winner{font-size:13px;color:#aaa;margin-top:2px}
+.award-stat{font-size:11px;color:#666;margin-top:2px}
+
+/* AUTH SCREEN */
+.auth-screen{position:fixed;inset:0;z-index:400;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+.auth-screen.hidden{display:none}
+.auth-logo{font-size:48px;margin-bottom:12px}
+.auth-title{font-size:26px;font-weight:700;color:var(--purple);margin-bottom:6px;text-align:center}
+.auth-sub{font-size:14px;color:var(--text2);margin-bottom:28px;text-align:center}
+.auth-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:100%;max-width:360px}
+.auth-tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--bg);border-radius:var(--radius-sm);padding:4px}
+.auth-tab{flex:1;padding:8px;text-align:center;font-size:14px;font-weight:600;border-radius:8px;cursor:pointer;color:var(--text2);transition:all 0.15s}
+.auth-tab.active{background:var(--card);color:var(--purple);box-shadow:0 1px 4px rgba(0,0,0,0.08)}
+.auth-error{font-size:13px;color:var(--red);background:var(--red-bg);padding:10px 12px;border-radius:var(--radius-sm);margin-bottom:12px;display:none}
+
+/* LOADING */
+.loading-screen{position:fixed;inset:0;z-index:450;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+.loading-screen.hidden{display:none}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--purple);border-radius:50%;animation:spin 0.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* HALL OF FAME */
+.hof-year{background:var(--purple-light);border-radius:var(--radius-sm);padding:8px 12px;margin-bottom:8px;cursor:pointer;display:flex;align-items:center;justify-content:space-between}
+.hof-year-title{font-size:15px;font-weight:700;color:var(--purple)}
+.hof-awards{display:none;padding:8px 0}
+.hof-awards.open{display:block}
+
+/* SETTINGS / PROFILE */
+.profile-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.profile-row:last-child{border-bottom:none}
+
+/* AVAILABILITY DOT KEY */
+.avail-legend{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.avail-leg-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2)}
+.avail-leg-dot{width:10px;height:10px;border-radius:50%}
+
+/* MISC */
+.divider{height:1px;background:var(--border);margin:12px 0}
+.empty-state{text-align:center;padding:32px 16px;color:var(--text2);font-size:14px}
+.empty-icon{font-size:40px;margin-bottom:10px}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;font-size:12px;background:var(--bg);color:var(--text2);border:1px solid var(--border)}
+.player-row{display:flex;align-items:flex-start;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.player-row:last-child{border-bottom:none}
+.tabs{display:flex;gap:4px;margin-bottom:16px;background:var(--bg);border-radius:var(--radius-sm);padding:4px}
+.tab{flex:1;padding:8px;text-align:center;font-size:13px;font-weight:600;border-radius:8px;cursor:pointer;color:var(--text2);transition:all 0.15s}
+.tab.active{background:var(--card);color:var(--purple);box-shadow:0 1px 4px rgba(0,0,0,0.08)}
+.retreat-banner{background:linear-gradient(135deg,#1a1030,#2e2060);border:1px solid var(--purple);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;color:#fff}
+
+/* PLAYER QUICK PICK */
+.player-pick-grid{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:4px}
+.player-chip{display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border-radius:99px;font-size:13px;font-weight:600;border:1.5px solid var(--border);background:var(--card);cursor:pointer;transition:all 0.15s;color:var(--text2)}
+.player-chip:hover{border-color:var(--purple);color:var(--purple)}
+.player-chip.picked{background:var(--purple);border-color:var(--purple);color:#fff}
+.player-chip .chip-init{width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,0.25);font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.player-chip.picked .chip-init{background:rgba(255,255,255,0.3)}
+
+/* MTG player chip (dark theme) */
+.mtg-player-chip{display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border-radius:99px;font-size:13px;font-weight:600;border:1.5px solid #2e2e4e;background:#1e1e2e;cursor:pointer;transition:all 0.15s;color:#888}
+.mtg-player-chip:hover{border-color:var(--gold);color:var(--gold)}
+.mtg-player-chip.picked{background:#2e2848;border-color:var(--gold);color:var(--gold-light)}
+
+/* RANDOMIZER */
+.randomizer-result{background:var(--purple-light);border:1px solid var(--purple);border-radius:var(--radius-sm);padding:12px 14px;margin-top:10px;display:none;text-align:center}
+.randomizer-result.show{display:block}
+.randomizer-winner{font-size:20px;font-weight:700;color:var(--purple);margin-bottom:2px}
+.randomizer-sub{font-size:12px;color:var(--text2)}
+
+/* MTG randomizer result (dark) */
+.mtg-rand-result{background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.3);border-radius:10px;padding:12px;margin-top:10px;display:none;text-align:center}
+.mtg-rand-result.show{display:block}
+.mtg-rand-winner{font-size:20px;font-weight:700;color:var(--gold-light);margin-bottom:2px}
+.mtg-rand-sub{font-size:11px;color:#666}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-screen" id="loading-screen">
+  <div style="font-size:40px;margin-bottom:8px">🎲</div>
+  <div class="spinner"></div>
+  <div style="font-size:14px;color:var(--text2)">Loading Game Night...</div>
+</div>
+
+<!-- AUTH -->
+<div class="auth-screen hidden" id="auth-screen">
+  <div class="auth-logo">🎲</div>
+  <div class="auth-title">Game Night</div>
+  <div class="auth-sub">Your group's game tracker</div>
+  <div class="auth-card">
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="tab-signin" onclick="switchAuthTab('signin')">Sign in</div>
+      <div class="auth-tab" id="tab-signup" onclick="switchAuthTab('signup')">Create account</div>
+    </div>
+    <div class="auth-error" id="auth-error"></div>
+    <div id="signin-form">
+      <div class="form-row"><label>Email</label><input type="email" id="signin-email" placeholder="you@email.com" autocomplete="email"></div>
+      <div class="form-row"><label>Password</label><input type="password" id="signin-password" placeholder="••••••••" autocomplete="current-password"></div>
+      <button class="btn btn-primary btn-full" onclick="signIn()" style="margin-top:4px">Sign in</button>
+    </div>
+    <div id="signup-form" style="display:none">
+      <div class="form-row">
+        <label>Your in-game name</label>
+        <input type="text" id="signup-name" placeholder="e.g. Tim, Tim-the-best, Jordan…" autocomplete="nickname">
+        <div style="font-size:11px;color:var(--text2);margin-top:5px">This is how you'll appear as a player option for everyone in the group. Choose whatever you want to be called.</div>
+      </div>
+      <div class="form-row"><label>Email</label><input type="email" id="signup-email" placeholder="you@email.com" autocomplete="email"></div>
+      <div class="form-row"><label>Password</label><input type="password" id="signup-password" placeholder="At least 6 characters" autocomplete="new-password"></div>
+      <button class="btn btn-primary btn-full" onclick="signUp()" style="margin-top:4px">Create account</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div class="app" id="main-app" style="display:none">
+  <div id="toast" class="toast"></div>
+  <div id="banners" style="padding:12px 16px 0"></div>
+
+  <!-- HOME -->
+  <div id="page-home" class="page active">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <h1>Game Night</h1>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="chip" id="home-date"></span>
+        <div class="avatar" id="home-avatar" style="cursor:pointer" onclick="showPage('profile')">?</div>
+      </div>
+    </div>
+    <p class="subtitle">Your group's gaming hub</p>
+    <div class="metric-grid">
+      <div class="metric"><div class="metric-val" id="stat-games">0</div><div class="metric-lbl">Games played</div></div>
+      <div class="metric"><div class="metric-val" id="stat-nights">0</div><div class="metric-lbl">Game nights</div></div>
+      <div class="metric"><div class="metric-val" id="stat-players">0</div><div class="metric-lbl">Players</div></div>
+    </div>
+    <div id="retreat-info"></div>
+    <div class="section-header">
+      <h2>Recent sessions</h2>
+      <button class="btn btn-primary btn-sm" onclick="showPage('log')">+ New game</button>
+    </div>
+    <div id="recent-list"><div class="empty-state"><div class="empty-icon">🎲</div>No games logged yet.<br>Start a new game!</div></div>
+  </div>
+
+  <!-- LOG GAME -->
+  <div id="page-log" class="page">
+    <h1>New game</h1>
+    <p class="subtitle">What are you playing tonight?</p>
+    <div class="game-type-grid">
+      <div class="game-type-card" id="type-board" onclick="selectGameType('board')">
+        <div class="icon">🎲</div>
+        <div class="gtitle">Board / card game</div>
+        <div class="gdesc">Catan, Uno, Wingspan…</div>
+      </div>
+      <div class="game-type-card" id="type-mtg" onclick="selectGameType('mtg')">
+        <div class="icon">🧙</div>
+        <div class="gtitle">Magic: The Gathering</div>
+        <div class="gdesc">Life tracker + log</div>
+      </div>
+    </div>
+    <div id="log-board-form" style="display:none">
+      <div class="card">
+        <div class="form-row"><label>Game name</label><input type="text" id="game-name" placeholder="e.g. Catan, Wingspan, Uno…"></div>
+        <div class="form-row"><label>Date</label><input type="date" id="game-date"></div>
+        <div class="form-row">
+          <label>Is this part of the year-end retreat?</label>
+          <select id="is-retreat"><option value="no">No — regular game night</option><option value="yes">Yes — year-end retreat</option></select>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-header"><h2>Players & scores</h2></div>
+        <div style="margin-bottom:10px">
+          <div style="font-size:12px;color:var(--text2);font-weight:500;margin-bottom:6px">Quick select</div>
+          <div class="player-pick-grid" id="log-player-chips"></div>
+          <div style="margin-top:8px;display:flex;align-items:center;gap:6px">
+            <input type="text" id="log-custom-player" placeholder="Add someone else…" style="flex:1;padding:7px 11px;font-size:13px">
+            <button class="btn btn-sm" onclick="addCustomLogPlayer()">Add</button>
+          </div>
+        </div>
+        <div id="player-list"></div>
+        <div class="randomizer-result" id="log-rand-result">
+          <div class="randomizer-winner" id="log-rand-name"></div>
+          <div class="randomizer-sub">goes first!</div>
+        </div>
+        <button class="btn btn-sm" style="margin-top:10px;width:100%" onclick="randomizeLogStart()">🎲 Randomize start player</button>
+      </div>
+      <div class="card">
+        <h2>Optional trackers</h2>
+        <div style="display:flex;flex-wrap:wrap;gap:12px">
+          <label style="display:flex;align-items:center;gap:7px;font-size:14px;cursor:pointer"><input type="checkbox" id="track-time" style="width:auto;width:16px;height:16px"> Duration</label>
+          <label style="display:flex;align-items:center;gap:7px;font-size:14px;cursor:pointer"><input type="checkbox" id="track-rounds" style="width:auto;width:16px;height:16px"> Rounds</label>
+          <label style="display:flex;align-items:center;gap:7px;font-size:14px;cursor:pointer"><input type="checkbox" id="track-notes" style="width:auto;width:16px;height:16px"> Notes</label>
+          <label style="display:flex;align-items:center;gap:7px;font-size:14px;cursor:pointer"><input type="checkbox" id="track-margin" style="width:auto;width:16px;height:16px"> Win margin</label>
+        </div>
+        <div id="optional-fields" style="margin-top:12px"></div>
+      </div>
+      <button class="btn btn-primary btn-full" style="margin-bottom:8px" onclick="saveGame()">Save game</button>
+    </div>
+  </div>
+
+  <!-- SCORE TRACKER -->
+  <div id="page-score" class="page">
+    <h1>Score tracker</h1>
+    <p class="subtitle">Live scores for any game</p>
+    <div class="card" style="margin-bottom:8px">
+      <input type="text" id="score-game-name" placeholder="Game name (optional)" style="margin-bottom:10px">
+      <div style="font-size:12px;color:var(--text2);font-weight:500;margin-bottom:6px">Quick select players</div>
+      <div class="player-pick-grid" id="score-player-chips"></div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <input type="text" id="score-custom-player" placeholder="Add someone else…" style="flex:1;padding:7px 11px;font-size:13px">
+        <button class="btn btn-sm" onclick="addCustomScorePlayer()">Add</button>
+      </div>
+    </div>
+    <div id="score-player-list" class="card"></div>
+    <div class="randomizer-result" id="score-rand-result">
+      <div class="randomizer-winner" id="score-rand-name"></div>
+      <div class="randomizer-sub">goes first!</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+      <button class="btn btn-sm" onclick="resetScores()">Reset scores</button>
+      <button class="btn btn-sm" onclick="randomizeScoreStart()">🎲 Randomize start</button>
+      <button class="btn btn-primary btn-sm" onclick="saveScoreToLog()">Save to log ↗</button>
+    </div>
+  </div>
+
+  <!-- STATS / LEADERBOARD -->
+  <div id="page-stats" class="page">
+    <h1>Leaderboard</h1>
+    <div class="tabs">
+      <div class="tab active" id="stab-alltime" onclick="switchStatTab('alltime')">All time</div>
+      <div class="tab" id="stab-year" onclick="switchStatTab('year')">This year</div>
+      <div class="tab" id="stab-retreat" onclick="switchStatTab('retreat')">Retreat</div>
+      <div class="tab" id="stab-hof" onclick="switchStatTab('hof')">Hall of fame</div>
+    </div>
+    <div id="stats-content"></div>
+  </div>
+
+  <!-- CALENDAR -->
+  <div id="page-cal" class="page">
+    <h1>Game nights</h1>
+    <p class="subtitle">Plan and schedule sessions</p>
+    <div class="avail-legend">
+      <div class="avail-leg-item"><div class="avail-leg-dot" style="background:#534AB7"></div>Scheduled</div>
+      <div class="avail-leg-item"><div class="avail-leg-dot" style="background:#3B6D11"></div>Proposed</div>
+      <div class="avail-leg-item"><div class="avail-leg-dot" style="background:#e55"></div>You're unavailable</div>
+      <div class="avail-leg-item"><div class="avail-leg-dot" style="background:var(--gold)"></div>Mon/Tue preferred</div>
+    </div>
+    <div class="card">
+      <div class="cal-header">
+        <button class="btn btn-sm" onclick="changeMonth(-1)">‹</button>
+        <span style="font-size:16px;font-weight:700" id="cal-month-label"></span>
+        <button class="btn btn-sm" onclick="changeMonth(1)">›</button>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+    </div>
+    <div id="cal-detail" style="display:none"></div>
+    <div id="best-night-banner"></div>
+    <div id="cal-upcoming"></div>
+  </div>
+
+  <!-- PROFILE / SETTINGS -->
+  <div id="page-profile" class="page">
+    <h1>Profile</h1>
+    <p class="subtitle" id="profile-email-sub"></p>
+    <div class="card">
+      <div class="profile-row">
+        <div class="avatar" id="profile-avatar" style="width:48px;height:48px;font-size:18px">?</div>
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:16px" id="profile-name">Loading...</div>
+          <div style="font-size:13px;color:var(--text2)" id="profile-stats-line">0 games · 0 wins</div>
+        </div>
+      </div>
+      <div class="profile-row">
+        <div style="flex:1">
+          <div class="form-row" style="margin-bottom:4px"><label>Change your in-game name</label><input type="text" id="update-name" placeholder="New name"></div>
+          <div style="font-size:11px;color:var(--text2)">This is how you appear as a player option for the group.</div>
+        </div>
+        <button class="btn btn-sm btn-primary" onclick="updateDisplayName()" style="margin-top:18px;flex-shrink:0">Save</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Year-end awards</h2>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Generate awards, view the trophy case, and reset for the new year.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-gold btn-sm" onclick="openAwards()">🏆 Year-end ceremony</button>
+        <button class="btn btn-sm" onclick="switchStatTab('hof');showPage('stats')">🏛 Hall of fame</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Danger zone</h2>
+      <button class="btn btn-danger btn-sm btn-full" onclick="confirmSignOut()">Sign out</button>
+    </div>
+  </div>
+
+</div><!-- end main-app -->
+
+<!-- NAV -->
+<nav class="nav" id="main-nav" style="display:none">
+  <button class="nav-btn active" id="nav-home" onclick="showPage('home')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12L12 4l9 8"/><path d="M5 10v9a1 1 0 001 1h4v-4h4v4h4a1 1 0 001-1v-9"/></svg>Home
+  </button>
+  <button class="nav-btn" id="nav-log" onclick="showPage('log')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 11h6M9 15h4"/></svg>Log
+  </button>
+  <button class="nav-btn" id="nav-score" onclick="showPage('score')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 3"/></svg>Score
+  </button>
+  <button class="nav-btn" id="nav-stats" onclick="showPage('stats')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>Stats
+  </button>
+  <button class="nav-btn" id="nav-cal" onclick="showPage('cal')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Cal
+  </button>
+</nav>
+
+<!-- MTG SETUP -->
+<div class="mtg-setup" id="mtg-setup">
+  <div>
+    <div class="mtg-setup-title">Magic: The Gathering</div>
+    <div class="mtg-setup-sub">Set up your game</div>
+  </div>
+
+  <div style="margin-bottom:16px">
+    <div class="setup-section-label">Format</div>
+    <div class="mtg-format-opts" id="mtg-format-opts">
+      <div class="mtg-format-opt sel" onclick="setMtgFormat('commander',this)">
+        <div class="fname">Commander</div>
+        <div class="fdesc">Up to 6 players · 40 life</div>
+      </div>
+      <div class="mtg-format-opt" onclick="setMtgFormat('draft',this)">
+        <div class="fname">Draft / Standard</div>
+        <div class="fdesc">2 players · 20 life</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-bottom:16px">
+    <div class="setup-section-label">Starting life</div>
+    <div class="life-opts" id="life-opts">
+      <div class="life-opt" onclick="setStartLife(20,this)">20</div>
+      <div class="life-opt" onclick="setStartLife(30,this)">30</div>
+      <div class="life-opt sel" onclick="setStartLife(40,this)">40</div>
+      <div class="life-opt" onclick="setStartLife(60,this)">60</div>
+    </div>
+  </div>
+
+  <div style="margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div class="setup-section-label" style="margin:0">Players</div>
+    </div>
+    <div style="font-size:11px;color:#666;margin-bottom:8px">Select in clockwise seating order — each player faces their own side of the device.</div>
+    <div style="margin-bottom:8px">
+      <div style="font-size:11px;color:#666;margin-bottom:6px">Quick select</div>
+      <div class="player-pick-grid" id="mtg-player-chips"></div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <input type="text" id="mtg-custom-player" placeholder="Add someone else…" style="flex:1;background:#1e1e2e;border-color:#2e2e4e;color:#f0f0f5;padding:7px 11px;font-size:13px;border-radius:8px;border:1px solid #2e2e4e;outline:none">
+        <button onclick="addCustomMtgPlayer()" style="background:#1e1e2e;border:1px solid #2e2e4e;border-radius:8px;color:var(--gold);padding:6px 12px;font-size:12px;cursor:pointer;font-family:inherit;white-space:nowrap">Add</button>
+      </div>
+    </div>
+    <div id="mtg-setup-players"></div>
+    <div class="mtg-rand-result" id="mtg-rand-result">
+      <div class="mtg-rand-winner" id="mtg-rand-name"></div>
+      <div class="mtg-rand-sub">goes first!</div>
+    </div>
+    <button onclick="randomizeMtgStart()" style="margin-top:8px;width:100%;background:#1e1e2e;border:1px solid #2e2e4e;border-radius:8px;color:#bbb;padding:9px;font-size:12px;cursor:pointer;font-family:inherit">🎲 Randomize start player</button>
+  </div>
+
+  <div style="display:flex;gap:10px;margin-top:auto;padding-top:8px">
+    <button onclick="closeMtgSetup()" style="flex:1;padding:13px;background:#1e1e2e;border:1px solid #2e2e4e;border-radius:10px;color:#888;font-size:15px;cursor:pointer;font-family:inherit">Cancel</button>
+    <button onclick="startMtgGame()" style="flex:2;padding:13px;background:var(--gold);border:none;border-radius:10px;color:#000;font-weight:700;font-size:15px;cursor:pointer;font-family:inherit">Start game</button>
+  </div>
+</div>
+
+<!-- MTG TRACKER -->
+<div class="mtg-screen" id="mtg-tracker">
+  <div class="mtg-topbar">
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">
+      <span class="mtg-title">Magic: The Gathering</span>
+      <span class="mtg-pill" id="mtg-turn-label">Turn 1</span>
+      <span class="mtg-pill" id="mtg-format-label">Commander</span>
+    </div>
+    <button class="mtg-close-btn" onclick="endMtgGame()">End game</button>
+  </div>
+  <div class="mtg-players-grid" id="mtg-players-grid"></div>
+  <div class="mtg-controls">
+    <button class="mtg-ctrl" onclick="nextTurn()">Next turn</button>
+    <button class="mtg-ctrl" onclick="rollDice()">Roll d20</button>
+    <button class="mtg-ctrl" onclick="flipCoin()">Flip coin</button>
+    <button class="mtg-ctrl" onclick="randomizeMtgTurnOrder()">🎲 Start player</button>
+    <button class="mtg-ctrl" onclick="resetMtgGame()">Reset</button>
+    <div class="mtg-result" id="mtg-result"></div>
+  </div>
+</div>
+
+<!-- CMD DAMAGE PANEL -->
+<div class="cmd-panel" id="cmd-panel" onclick="closeCmdPanelBg(event)">
+  <div class="cmd-inner" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
+      <div class="cmd-title" id="cmd-title">Commander damage</div>
+      <button onclick="closeCmdPanel()" style="background:transparent;border:none;color:#666;font-size:24px;cursor:pointer;padding:0 4px;line-height:1">×</button>
+    </div>
+    <div class="cmd-sub" id="cmd-sub">Track incoming commander damage and poison</div>
+    <div id="cmd-rows"></div>
+    <div style="margin-top:10px;background:#141420;border:1px solid #2a2a3e;border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between">
+      <span style="font-size:13px;color:#888">☠ Poison counters</span>
+      <div class="cmd-ctr">
+        <button class="cmd-btn" onclick="changePoison(-1)">−</button>
+        <span class="cmd-val" id="poison-val">0</span>
+        <button class="cmd-btn" onclick="changePoison(1)">+</button>
+      </div>
+    </div>
+    <div style="font-size:11px;color:#444;margin-top:10px;text-align:center">21+ commander damage from one source = eliminated · 10 poison = eliminated</div>
+  </div>
+</div>
+
+<!-- AWARDS SCREEN -->
+<div class="awards-screen" id="awards-screen">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+    <div>
+      <div style="font-size:24px;font-weight:700;color:var(--gold-light)">🏆 Year-End Awards</div>
+      <div style="font-size:13px;color:#666;margin-top:2px" id="awards-year-label"></div>
+    </div>
+    <button onclick="closeAwards()" style="background:#1e1e2e;border:1px solid #2e2e4e;border-radius:8px;color:#aaa;padding:8px 14px;font-size:13px;cursor:pointer;font-family:inherit">Close</button>
+  </div>
+  <div id="awards-list" style="margin-bottom:20px"></div>
+  <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:var(--radius);padding:16px;margin-bottom:16px">
+    <div style="font-size:15px;font-weight:600;color:var(--gold-light);margin-bottom:10px">Custom award</div>
+    <div class="form-row"><input type="text" id="custom-award-name" placeholder='Award name e.g. "Best Trash Talker"' style="background:#1e1e2e;border-color:#2e2e4e;color:#f0f0f5"></div>
+    <div class="form-row"><input type="text" id="custom-award-winner" placeholder="Winner's name" style="background:#1e1e2e;border-color:#2e2e4e;color:#f0f0f5"></div>
+    <button onclick="addCustomAward()" style="background:var(--gold);border:none;border-radius:8px;color:#000;font-weight:600;padding:9px 16px;font-size:14px;cursor:pointer;font-family:inherit">Add custom award</button>
+  </div>
+  <div id="custom-awards-list" style="margin-bottom:20px"></div>
+  <div style="background:rgba(229,85,85,0.08);border:1px solid rgba(229,85,85,0.25);border-radius:var(--radius);padding:16px">
+    <div style="font-size:15px;font-weight:600;color:#e55;margin-bottom:6px">⚠ Reset for new year</div>
+    <div style="font-size:13px;color:#888;margin-bottom:12px">This archives all current stats and starts fresh. Awards are saved to the Hall of Fame permanently.</div>
+    <button onclick="confirmYearReset()" style="background:#1e1e2e;border:1px solid #e55;border-radius:8px;color:#e55;font-weight:600;padding:9px 16px;font-size:14px;cursor:pointer;font-family:inherit">Archive & reset to new year</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  FIREBASE INIT
+// ============================================================
+firebase.initializeApp(FIREBASE_CONFIG);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const GROUP_ID = 'main'; // single group
+
+// ============================================================
+//  STATE
+// ============================================================
+let currentUser = null;
+let currentProfile = null;
+let allGames = [];
+let allPlayers = {};
+let calEvents = {};
+let calAvailability = {};
+let calViewMonth = new Date().getMonth();
+let calViewYear = new Date().getFullYear();
+let logPlayers = [{id:1,name:'',score:0}];
+let nextLocalId = 100;
+let scorePlayers = [{id:1,name:'Player 1',score:0},{id:2,name:'Player 2',score:0}];
+let mtgState = {startLife:40,format:'commander',players:[],turn:1};
+let mtgSetupPlayers = [{name:'Player 1'},{name:'Player 2'},{name:'Player 3'},{name:'Player 4'}];
+let mtgSetupLife = 40;
+let mtgSetupFormat = 'commander';
+let cmdActivePlayer = -1;
+let currentStatTab = 'alltime';
+let customAwards = [];
+let hallOfFame = [];
+let unsubGames = null, unsubPlayers = null, unsubCal = null, unsubAvail = null, unsubHof = null;
+
+// ============================================================
+//  AUTH
+// ============================================================
+auth.onAuthStateChanged(async user => {
+  document.getElementById('loading-screen').classList.add('hidden');
+  if (user) {
+    currentUser = user;
+    await loadProfile();
+    showApp();
+    subscribeAll();
+  } else {
+    showAuthScreen();
+  }
+});
+
+function showApp() {
+  document.getElementById('auth-screen').classList.add('hidden');
+  document.getElementById('main-app').style.display = 'block';
+  document.getElementById('main-nav').style.display = 'flex';
+  updateProfileUI();
+  showPage('home');
+}
+
+function showAuthScreen() {
+  document.getElementById('auth-screen').classList.remove('hidden');
+  document.getElementById('main-app').style.display = 'none';
+  document.getElementById('main-nav').style.display = 'none';
+}
+
+function switchAuthTab(t) {
+  document.getElementById('tab-signin').classList.toggle('active', t==='signin');
+  document.getElementById('tab-signup').classList.toggle('active', t==='signup');
+  document.getElementById('signin-form').style.display = t==='signin'?'block':'none';
+  document.getElementById('signup-form').style.display = t==='signup'?'block':'none';
+  document.getElementById('auth-error').style.display = 'none';
+}
+
+async function signIn() {
+  const email = document.getElementById('signin-email').value.trim();
+  const pass = document.getElementById('signin-password').value;
+  if (!email||!pass) return showAuthError('Please fill in all fields.');
+  try {
+    await auth.signInWithEmailAndPassword(email, pass);
+  } catch(e) { showAuthError(friendlyAuthError(e)); }
+}
+
+async function signUp() {
+  const name = document.getElementById('signup-name').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
+  const pass = document.getElementById('signup-password').value;
+  if (!name||!email||!pass) return showAuthError('Please fill in all fields.');
+  if (pass.length < 6) return showAuthError('Password must be at least 6 characters.');
+  try {
+    const cred = await auth.createUserWithEmailAndPassword(email, pass);
+    await cred.user.updateProfile({displayName: name});
+    await db.collection('players').doc(cred.user.uid).set({
+      name, email, wins:0, losses:0, games:0, mtgWins:0, mtgGames:0, joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch(e) { showAuthError(friendlyAuthError(e)); }
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('auth-error');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+function friendlyAuthError(e) {
+  if (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password') return 'Incorrect email or password.';
+  if (e.code === 'auth/email-already-in-use') return 'An account with this email already exists.';
+  if (e.code === 'auth/invalid-email') return 'Please enter a valid email address.';
+  return e.message;
+}
+
+function confirmSignOut() {
+  if (confirm('Sign out?')) { unsubscribeAll(); auth.signOut(); }
+}
+
+async function loadProfile() {
+  try {
+    const doc = await db.collection('players').doc(currentUser.uid).get();
+    if (doc.exists) currentProfile = doc.data();
+    else currentProfile = {name: currentUser.displayName||'Player', wins:0,losses:0,games:0,mtgWins:0,mtgGames:0};
+  } catch(e) { currentProfile = {name: currentUser.displayName||'Player', wins:0,losses:0,games:0,mtgWins:0,mtgGames:0}; }
+}
+
+async function updateDisplayName() {
+  const name = document.getElementById('update-name').value.trim();
+  if (!name) return toast('Enter a name');
+  await currentUser.updateProfile({displayName: name});
+  await db.collection('players').doc(currentUser.uid).update({name});
+  currentProfile.name = name;
+  updateProfileUI();
+  toast('Name updated!');
+}
+
+function updateProfileUI() {
+  const name = currentProfile?.name || currentUser?.displayName || '?';
+  const initials = name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('home-avatar').textContent = initials;
+  document.getElementById('profile-avatar').textContent = initials;
+  document.getElementById('profile-name').textContent = name;
+  document.getElementById('profile-email-sub').textContent = currentUser?.email||'';
+  document.getElementById('update-name').value = name;
+  const p = currentProfile || {};
+  document.getElementById('profile-stats-line').textContent = `${p.games||0} games · ${p.wins||0} wins`;
+}
+
+// ============================================================
+//  FIREBASE SUBSCRIPTIONS
+// ============================================================
+function subscribeAll() {
+  unsubGames = db.collection('games').orderBy('createdAt','desc').limit(200)
+    .onSnapshot(snap => {
+      allGames = snap.docs.map(d=>({id:d.id,...d.data()}));
+      if (document.getElementById('page-home').classList.contains('active')) renderHome();
+      if (document.getElementById('page-stats').classList.contains('active')) renderStats();
+      checkBanners();
+    });
+
+  unsubPlayers = db.collection('players').onSnapshot(snap => {
+    allPlayers = {};
+    snap.docs.forEach(d => allPlayers[d.id] = {uid:d.id,...d.data()});
+    updateProfileUI();
+    if (document.getElementById('page-stats').classList.contains('active')) renderStats();
+  });
+
+  unsubCal = db.collection('calEvents').onSnapshot(snap => {
+    calEvents = {};
+    snap.docs.forEach(d => calEvents[d.id] = d.data());
+    if (document.getElementById('page-cal').classList.contains('active')) renderCal();
+    checkBanners();
+  });
+
+  unsubAvail = db.collection('availability').onSnapshot(snap => {
+    calAvailability = {};
+    snap.docs.forEach(d => {
+      const data = d.data();
+      if (!calAvailability[data.date]) calAvailability[data.date] = {};
+      calAvailability[data.date][data.uid] = data.status;
+    });
+    if (document.getElementById('page-cal').classList.contains('active')) renderCal();
+  });
+
+  unsubHof = db.collection('hallOfFame').orderBy('year','desc')
+    .onSnapshot(snap => {
+      hallOfFame = snap.docs.map(d=>({id:d.id,...d.data()}));
+    });
+}
+
+function unsubscribeAll() {
+  [unsubGames,unsubPlayers,unsubCal,unsubAvail,unsubHof].forEach(u=>u&&u());
+}
+
+// ============================================================
+//  NAVIGATION
+// ============================================================
+const PAGES = ['home','log','score','stats','cal','profile'];
+function showPage(p) {
+  PAGES.forEach(id => {
+    document.getElementById('page-'+id).classList.toggle('active', id===p);
+    const nav = document.getElementById('nav-'+id);
+    if (nav) nav.classList.toggle('active', id===p);
+  });
+  if (p==='home') renderHome();
+  if (p==='log') renderLogPage();
+  if (p==='score') renderScorePlayers();
+  if (p==='stats') renderStats();
+  if (p==='cal') { calViewMonth=new Date().getMonth(); calViewYear=new Date().getFullYear(); renderCal(); }
+  if (p==='profile') updateProfileUI();
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.style.opacity = 1;
+  clearTimeout(el._t); el._t = setTimeout(()=>el.style.opacity=0, 2400);
+}
+
+// ============================================================
+//  BANNERS
+// ============================================================
+function checkBanners() {
+  const container = document.getElementById('banners');
+  const msgs = [];
+  // Check for proposed events needing confirmation
+  const today = todayStr();
+  Object.entries(calEvents).forEach(([date, ev]) => {
+    if (date >= today && ev.type === 'proposed') {
+      const confirmed = ev.confirmed || [];
+      const declined = ev.declined || [];
+      if (!confirmed.includes(currentUser?.uid) && !declined.includes(currentUser?.uid)) {
+        msgs.push({text:`📅 Game night proposed: ${formatDateShort(date)} — ${ev.name}. Confirm availability?`, date});
+      }
+    }
+    if (date >= today && ev.type === 'confirmed') {
+      const total = Object.keys(allPlayers).length;
+      const cnt = (ev.confirmed||[]).length;
+      if (cnt >= 3 && !(ev._bannerSeen||[]).includes(currentUser?.uid)) {
+        msgs.push({text:`✅ ${cnt}/${total} players confirmed for ${formatDateShort(date)}!`, info:true, key:'confirmed_'+date});
+      }
+    }
+  });
+  container.innerHTML = msgs.slice(0,2).map(m => `
+    <div class="banner" onclick="showPage('cal')">
+      <span class="banner-icon">${m.info?'🎉':'📅'}</span>
+      <span class="banner-text">${m.text}</span>
+      <button class="banner-close" onclick="event.stopPropagation();this.parentElement.remove()">×</button>
+    </div>`).join('');
+}
+
+// ============================================================
+//  HOME
+// ============================================================
+function renderHome() {
+  const today = new Date();
+  document.getElementById('home-date').textContent = today.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const thisYear = today.getFullYear();
+  const yearGames = allGames.filter(g => g.year === thisYear || (g.date && g.date.startsWith(thisYear.toString())));
+  document.getElementById('stat-games').textContent = yearGames.length;
+  document.getElementById('stat-nights').textContent = new Set(yearGames.map(g=>g.date)).size;
+  document.getElementById('stat-players').textContent = Object.keys(allPlayers).length;
+
+  const retreatGames = allGames.filter(g=>g.isRetreat);
+  if (retreatGames.length) {
+    document.getElementById('retreat-info').innerHTML = `<div class="retreat-banner"><div style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:2px">🏕 Year-end retreat</div><div style="font-size:15px;font-weight:600">${retreatGames.length} games logged</div></div>`;
+  } else {
+    document.getElementById('retreat-info').innerHTML = '';
+  }
+
+  const recent = allGames.slice(0,5);
+  const list = document.getElementById('recent-list');
+  if (!recent.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">🎲</div>No games logged yet.<br>Start a new game!</div>`;
+    return;
+  }
+  list.innerHTML = recent.map(g => {
+    const sorted = [...(g.players||[])].sort((a,b)=>b.score-a.score);
+    const winner = sorted[0]||{name:'?'};
+    const d = formatDateShort(g.date);
+    return `<div class="card" style="margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div><div style="font-weight:600;font-size:15px">${g.name}${g.isMtg?' 🧙':''}${g.isRetreat?' 🏕':''}</div>
+        <div style="font-size:12px;color:var(--text2)">${d} · ${(g.players||[]).length} players</div></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="badge badge-gold">🏆 ${winner.name}</span>
+          <button onclick="deleteGame('${g.id}',event)" style="background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:4px;line-height:1" title="Delete game">🗑</button>
+        </div>
+      </div>
+      ${g.notes?`<div style="font-size:12px;color:var(--text2);margin-top:6px;font-style:italic">"${g.notes}"</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+//  PLAYER ROSTER — built from Firebase accounts only
+// ============================================================
+function getKnownPlayers() {
+  // Returns display names of all registered accounts, sorted alphabetically
+  return Object.values(allPlayers)
+    .map(p => p.name)
+    .filter(Boolean)
+    .sort((a,b) => a.localeCompare(b));
+}
+
+// ============================================================
+//  LOG GAME
+// ============================================================
+function renderLogPage() {
+  document.getElementById('log-board-form').style.display = 'none';
+  document.getElementById('type-board').classList.remove('selected');
+  document.getElementById('type-mtg').classList.remove('selected');
+  logPlayers = [];
+  document.getElementById('game-name').value = '';
+  document.getElementById('game-date').value = todayStr();
+  document.getElementById('is-retreat').value = 'no';
+  ['track-time','track-rounds','track-notes','track-margin'].forEach(id=>{
+    document.getElementById(id).checked = false;
+    document.getElementById(id).onchange = renderOptional;
+  });
+  renderOptional();
+  renderLogPlayerChips();
+  renderLogPlayers();
+}
+
+function renderLogPlayerChips() {
+  const known = getKnownPlayers();
+  const picked = logPlayers.map(p=>p.name.toLowerCase());
+  document.getElementById('log-player-chips').innerHTML = known.map(name => {
+    const isPicked = picked.includes(name.toLowerCase());
+    const init = name.slice(0,2).toUpperCase();
+    return `<div class="player-chip${isPicked?' picked':''}" onclick="toggleLogPlayer('${name}')">
+      <div class="chip-init">${init}</div>${name}
+    </div>`;
+  }).join('');
+}
+
+function toggleLogPlayer(name) {
+  const idx = logPlayers.findIndex(p=>p.name.toLowerCase()===name.toLowerCase());
+  if(idx>=0) logPlayers.splice(idx,1);
+  else logPlayers.push({id:nextLocalId++,name,score:0});
+  renderLogPlayerChips();
+  renderLogPlayers();
+}
+
+function addCustomLogPlayer() {
+  const input = document.getElementById('log-custom-player');
+  const name = input.value.trim();
+  if(!name) return;
+  if(logPlayers.find(p=>p.name.toLowerCase()===name.toLowerCase())) { toast('Already added'); return; }
+  logPlayers.push({id:nextLocalId++,name,score:0});
+  input.value='';
+  renderLogPlayerChips();
+  renderLogPlayers();
+}
+
+function renderLogPlayers() {
+  const el = document.getElementById('player-list');
+  if(!logPlayers.length){
+    el.innerHTML='<div style="font-size:13px;color:var(--text2);padding:8px 0">Select players above to add them</div>';
+    return;
+  }
+  el.innerHTML = logPlayers.map((p,i) => `
+    <div class="player-row">
+      <div style="flex:1;margin-right:8px">
+        <div style="font-weight:600;font-size:14px;margin-bottom:6px">${p.name}</div>
+        <div class="row"><label style="margin:0;flex:0 0 auto;margin-right:8px;font-size:13px">Score</label><input type="number" value="${p.score}" onchange="logPlayers[${i}].score=+this.value" style="width:90px;padding:7px 10px;font-size:14px"></div>
+      </div>
+      <button class="btn btn-sm btn-danger" onclick="removeLogPlayer(${i})" style="flex-shrink:0;margin-top:4px">✕</button>
+    </div>`).join('');
+}
+
+function addLogPlayer() { logPlayers.push({id:nextLocalId++,name:'',score:0}); renderLogPlayers(); }
+function removeLogPlayer(i) {
+  logPlayers.splice(i,1);
+  renderLogPlayerChips();
+  renderLogPlayers();
+}
+
+function randomizeLogStart() {
+  const active = logPlayers.filter(p=>p.name);
+  if(active.length<2){ toast('Add at least 2 players first'); return; }
+  const winner = active[Math.floor(Math.random()*active.length)];
+  const el = document.getElementById('log-rand-result');
+  document.getElementById('log-rand-name').textContent = winner.name;
+  el.classList.add('show');
+  toast(winner.name+' goes first!');
+}
+
+function selectGameType(t) {
+  document.getElementById('type-board').classList.toggle('selected', t==='board');
+  document.getElementById('type-mtg').classList.toggle('selected', t==='mtg');
+  if (t==='board') document.getElementById('log-board-form').style.display = 'block';
+  else openMtgSetup();
+}
+
+function renderOptional() {
+  const fields = [];
+  if (document.getElementById('track-time').checked) fields.push(`<div class="form-row"><label>Duration (minutes)</label><input type="number" id="opt-time" min="1" placeholder="e.g. 90"></div>`);
+  if (document.getElementById('track-rounds').checked) fields.push(`<div class="form-row"><label>Rounds played</label><input type="number" id="opt-rounds" min="1" placeholder="e.g. 5"></div>`);
+  if (document.getElementById('track-margin').checked) fields.push(`<div class="form-row"><label>Win margin (pts)</label><input type="number" id="opt-margin" min="0" placeholder="Difference in score"></div>`);
+  if (document.getElementById('track-notes').checked) fields.push(`<div class="form-row"><label>Notes</label><input type="text" id="opt-notes" placeholder="Any highlights…"></div>`);
+  document.getElementById('optional-fields').innerHTML = fields.join('');
+}
+
+async function saveGame() {
+  const name = document.getElementById('game-name').value.trim();
+  const date = document.getElementById('game-date').value;
+  if (!name) return toast('Enter a game name');
+  if (!logPlayers.some(p=>p.name)) return toast('Add at least one player');
+  const isRetreat = document.getElementById('is-retreat').value === 'yes';
+  const sorted = [...logPlayers].filter(p=>p.name).sort((a,b)=>b.score-a.score);
+  const game = {
+    name, date, isMtg:false, isRetreat,
+    year: new Date(date+'T00:00:00').getFullYear(),
+    players: logPlayers.filter(p=>p.name).map(p=>({...p})),
+    loggedBy: currentUser.uid,
+    loggedByName: currentProfile?.name || currentUser.displayName || 'Unknown',
+    duration: getOptVal('opt-time'),
+    rounds: getOptVal('opt-rounds'),
+    margin: getOptVal('opt-margin'),
+    notes: getOptVal('opt-notes'),
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  try {
+    await db.collection('games').add(game);
+    await updatePlayerStats(game, sorted[0]);
+    logPlayers = [{id:nextLocalId++,name:'',score:0}];
+    toast('Game saved!');
+    showPage('home');
+  } catch(e) { toast('Error saving: '+e.message); }
+}
+
+function getOptVal(id) {
+  const el = document.getElementById(id);
+  return el ? el.value : '';
+}
+
+async function deleteGame(gameId, e) {
+  if(e) e.stopPropagation();
+  if(!confirm('Delete this game? This removes it from the log but does not affect player stats.')) return;
+  try {
+    await db.collection('games').doc(gameId).delete();
+    toast('Game deleted');
+  } catch(err) { toast('Error: '+err.message); }
+}
+
+async function updatePlayerStats(game, winner) {
+  const batch = db.batch();
+  game.players.forEach(p => {
+    const uid = findPlayerUid(p.name);
+    if (!uid) return;
+    const ref = db.collection('players').doc(uid);
+    const isWinner = winner && p.name === winner.name;
+    batch.update(ref, {
+      games: firebase.firestore.FieldValue.increment(1),
+      wins: isWinner ? firebase.firestore.FieldValue.increment(1) : firebase.firestore.FieldValue.increment(0),
+      losses: !isWinner ? firebase.firestore.FieldValue.increment(1) : firebase.firestore.FieldValue.increment(0),
+    });
+  });
+  await batch.commit();
+}
+
+function findPlayerUid(name) {
+  return Object.keys(allPlayers).find(uid => allPlayers[uid].name?.toLowerCase() === name?.toLowerCase());
+}
+
+// ============================================================
+//  SCORE TRACKER
+// ============================================================
+function renderScorePlayers() {
+  // Render chips
+  const known = getKnownPlayers();
+  const picked = scorePlayers.map(p=>p.name.toLowerCase());
+  const chipsEl = document.getElementById('score-player-chips');
+  if(chipsEl) chipsEl.innerHTML = known.map(name => {
+    const isPicked = picked.includes(name.toLowerCase());
+    const init = name.slice(0,2).toUpperCase();
+    return `<div class="player-chip${isPicked?' picked':''}" onclick="toggleScorePlayer('${name}')">
+      <div class="chip-init">${init}</div>${name}
+    </div>`;
+  }).join('');
+
+  // Render score list
+  const el = document.getElementById('score-player-list');
+  if (!scorePlayers.length) { el.innerHTML = '<p style="font-size:13px;color:var(--text2)">Select players above</p>'; return; }
+  const max = Math.max(...scorePlayers.map(p=>p.score));
+  el.innerHTML = scorePlayers.map((p,i) => `
+    <div class="player-row">
+      <div class="row" style="flex:1;gap:8px">
+        <div class="avatar">${(p.name||'P').slice(0,2).toUpperCase()}</div>
+        <span style="flex:1;font-weight:600;font-size:14px">${p.name}</span>
+        ${p.score===max&&p.score>0?'<span class="badge badge-gold">🏆</span>':''}
+      </div>
+      <div class="score-counter">
+        <button class="score-btn" onclick="changeScore(${i},-1)">−</button>
+        <span class="score-val">${p.score}</span>
+        <button class="score-btn" onclick="changeScore(${i},1)">+</button>
+      </div>
+    </div>`).join('');
+}
+
+function toggleScorePlayer(name) {
+  const idx = scorePlayers.findIndex(p=>p.name.toLowerCase()===name.toLowerCase());
+  if(idx>=0) scorePlayers.splice(idx,1);
+  else scorePlayers.push({id:nextLocalId++,name,score:0});
+  renderScorePlayers();
+}
+
+function addCustomScorePlayer() {
+  const input = document.getElementById('score-custom-player');
+  const name = input.value.trim();
+  if(!name) return;
+  if(scorePlayers.find(p=>p.name.toLowerCase()===name.toLowerCase())){ toast('Already added'); return; }
+  scorePlayers.push({id:nextLocalId++,name,score:0});
+  input.value='';
+  renderScorePlayers();
+}
+
+function changeScore(i,d) { scorePlayers[i].score += d; renderScorePlayers(); }
+function addScorePlayer() { scorePlayers.push({id:nextLocalId++,name:'Player '+(scorePlayers.length+1),score:0}); renderScorePlayers(); }
+function resetScores() { scorePlayers.forEach(p=>p.score=0); renderScorePlayers(); }
+
+function randomizeScoreStart() {
+  if(scorePlayers.length<2){ toast('Add at least 2 players first'); return; }
+  const winner = scorePlayers[Math.floor(Math.random()*scorePlayers.length)];
+  const el = document.getElementById('score-rand-result');
+  document.getElementById('score-rand-name').textContent = winner.name;
+  el.classList.add('show');
+  toast(winner.name+' goes first!');
+}
+
+function saveScoreToLog() {
+  logPlayers = scorePlayers.map(p=>({...p}));
+  const gn = document.getElementById('score-game-name').value;
+  document.getElementById('type-board').classList.add('selected');
+  document.getElementById('log-board-form').style.display = 'block';
+  if (gn) document.getElementById('game-name').value = gn;
+  renderLogPlayerChips();
+  renderLogPlayers();
+  showPage('log');
+  toast('Scores imported to log!');
+}
+
+// ============================================================
+//  MTG SETUP
+// ============================================================
+
+let mtgSelectedLayout = null; // kept for compatibility, unused
+
+function openMtgSetup() {
+  mtgSetupFormat = 'commander'; mtgSetupLife = 40;
+  mtgSetupPlayers = [];
+  renderMtgSetupPlayers();
+  document.getElementById('mtg-rand-result')?.classList.remove('show');
+  document.getElementById('mtg-setup').classList.add('open');
+}
+function closeMtgSetup() { document.getElementById('mtg-setup').classList.remove('open'); }
+
+function setMtgFormat(f, el) {
+  mtgSetupFormat = f;
+  document.querySelectorAll('.mtg-format-opt').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+  if (f==='commander') { mtgSetupLife=40; setLifeOptUI(40); }
+  else { mtgSetupLife=20; setLifeOptUI(20); while(mtgSetupPlayers.length>2) mtgSetupPlayers.pop(); }
+  renderMtgSetupPlayers();
+}
+
+function setStartLife(n, el) {
+  mtgSetupLife = n;
+  document.querySelectorAll('.life-opt').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+}
+function setLifeOptUI(n) {
+  document.querySelectorAll('.life-opt').forEach(b=>b.classList.toggle('sel', parseInt(b.textContent)===n));
+}
+
+function renderMtgSetupPlayers() {
+  const known = getKnownPlayers();
+  const picked = mtgSetupPlayers.map(p=>p.name.toLowerCase());
+  const chipsEl = document.getElementById('mtg-player-chips');
+  if(chipsEl) chipsEl.innerHTML = known.map(name => {
+    const isPicked = picked.includes(name.toLowerCase());
+    const init = name.slice(0,2).toUpperCase();
+    return `<div class="mtg-player-chip${isPicked?' picked':''}" onclick="toggleMtgPlayer('${name}')">
+      <div style="width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,0.1);font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${init}</div>${name}
+    </div>`;
+  }).join('');
+
+  const colors = ['#1a1220','#0d1a1a','#1a1510','#0d1520','#1e100e','#0e1a0e'];
+  const seatLabels = ['1st (left)','2nd (top)','3rd (right)','4th (bottom)','5th','6th'];
+  document.getElementById('mtg-setup-players').innerHTML = mtgSetupPlayers.length
+    ? mtgSetupPlayers.map((p,i) => `
+      <div class="mtg-p-setup" style="display:flex;align-items:center;gap:10px">
+        <div style="width:12px;height:12px;border-radius:50%;background:${colors[i%colors.length]};flex-shrink:0;border:1px solid rgba(255,255,255,0.2)"></div>
+        <span style="flex:1;color:#ddd;font-size:14px;font-weight:600">${p.name}</span>
+        <span style="font-size:10px;color:#555">${seatLabels[i]||''}</span>
+        <button onclick="removeMtgSetupPlayer(${i})" style="background:transparent;border:none;color:#555;font-size:16px;cursor:pointer;padding:2px 4px">✕</button>
+      </div>`).join('')
+    : '<div style="font-size:12px;color:#555;padding:8px 0">Select players above</div>';
+}
+
+function toggleMtgPlayer(name) {
+  const idx = mtgSetupPlayers.findIndex(p=>p.name.toLowerCase()===name.toLowerCase());
+  if(idx>=0) mtgSetupPlayers.splice(idx,1);
+  else { if(mtgSetupPlayers.length>=6){ toast('Max 6 players'); return; } mtgSetupPlayers.push({name}); }
+  renderMtgSetupPlayers();
+}
+
+function addCustomMtgPlayer() {
+  const input = document.getElementById('mtg-custom-player');
+  const name = input.value.trim();
+  if(!name) return;
+  if(mtgSetupPlayers.find(p=>p.name.toLowerCase()===name.toLowerCase())){ toast('Already added'); return; }
+  if(mtgSetupPlayers.length>=6){ toast('Max 6 players'); return; }
+  mtgSetupPlayers.push({name});
+  input.value='';
+  renderMtgSetupPlayers();
+}
+
+function addMtgSetupPlayer() {
+  if(mtgSetupPlayers.length>=6) return;
+  mtgSetupPlayers.push({name:'Player '+(mtgSetupPlayers.length+1)});
+  renderMtgSetupPlayers();
+}
+
+function removeMtgSetupPlayer(i) {
+  mtgSetupPlayers.splice(i,1);
+  renderMtgSetupPlayers();
+}
+
+function randomizeMtgStart() {
+  if(mtgSetupPlayers.length<2){ toast('Add at least 2 players'); return; }
+  const winner = mtgSetupPlayers[Math.floor(Math.random()*mtgSetupPlayers.length)];
+  const el = document.getElementById('mtg-rand-result');
+  document.getElementById('mtg-rand-name').textContent = winner.name;
+  el.classList.add('show');
+}
+
+function startMtgGame() {
+  if(mtgSetupPlayers.length<2){ toast('Select at least 2 players'); return; }
+  const colors = ['#1a1220','#0d1a1a','#1a1510','#0d1520','#1e100e','#0e1a0e'];
+  mtgState = {
+    startLife:mtgSetupLife, format:mtgSetupFormat, turn:1,
+    players: mtgSetupPlayers.map((p,i)=>({
+      name:p.name||'Player '+(i+1), life:mtgSetupLife, poison:0, cmdDmg:{}, color:colors[i%colors.length], eliminated:false
+    }))
+  };
+  document.getElementById('mtg-setup').classList.remove('open');
+  document.getElementById('mtg-tracker').classList.add('open');
+  document.getElementById('mtg-format-label').textContent = mtgSetupFormat==='commander'?'Commander':'Draft/Standard';
+  renderMtgTracker();
+}
+
+// ============================================================
+//  MTG TRACKER
+// ============================================================
+
+// For n players, return per-player rotation in degrees (clockwise seating order)
+// 4 players: P0=left(90°CW), P1=top(180°), P2=right(270°CW), P3=bottom(0°)
+// 3 players: P0=top-left(180°), P1=top-right(180°), P2=bottom(0°)  
+// 5 players: P0=top-left(180°), P1=top-right(180°), P2=bottom-left(0°), P3=bottom-right(0°), P4=right(270°)
+// 2 players: P0=top(180°), P1=bottom(0°)
+function getPlayerRotations(n) {
+  if(n===2) return [180, 0];
+  if(n===3) return [180, 180, 0];
+  if(n===4) return [90, 180, 270, 0];
+  if(n===5) return [180, 180, 0, 0, 270];
+  if(n===6) return [180, 180, 180, 0, 0, 0];
+  return Array(n).fill(0);
+}
+
+function getGridStyle(n) {
+  if(n===2) return {cols:'1fr', rows:'1fr 1fr'};
+  if(n===3) return {cols:'1fr 1fr', rows:'1fr 1fr',
+    areas:'"p0 p1" "p2 p2"'};
+  if(n===4) return {cols:'1fr 1fr', rows:'1fr 1fr'};
+  if(n===5) return {cols:'1fr 1fr', rows:'1fr 1fr 1fr',
+    areas:'"p0 p1" "p2 p3" "p4 p4"'};
+  if(n===6) return {cols:'1fr 1fr', rows:'1fr 1fr 1fr'};
+  return {cols:'1fr 1fr', rows:`repeat(${Math.ceil(n/2)},1fr)`};
+}
+
+// Given a cell's rotation (0/90/180/270), return which raw tap half (top/bottom)
+// maps to life-up and life-down from the player's perspective.
+// The inner content is rotated, so "up" for the player maps to different raw directions.
+// rot=0: top-half=+1, bottom-half=-1 (normal)
+// rot=180: top-half=-1, bottom-half=+1 (flipped)
+// rot=90: left side is player's "up" — but we only split vertically in raw coords.
+//   For 90°CW: player's "top" is raw right, player's "bottom" is raw left.
+//   We still split raw top/bottom: raw top = player's left side = doesn't map cleanly.
+//   Simplest approach: for 90° rotations, split raw left/right instead of top/bottom.
+//   We achieve this by making tap-zone use grid-template-columns for 90/270.
+function getTapConfig(rot) {
+  // Returns {splitAxis: 'rows'|'cols', topOrLeftDir: number, botOrRightDir: number}
+  if(rot===0)   return {axis:'rows', first:+1, second:-1};
+  if(rot===180) return {axis:'rows', first:-1, second:+1};
+  if(rot===90)  return {axis:'cols', first:-1, second:+1}; // left=down(for player), right=up
+  if(rot===270) return {axis:'cols', first:+1, second:-1}; // left=up(for player), right=down
+  return {axis:'rows', first:+1, second:-1};
+}
+
+function buildCmdStrip(p, playerIdx, allPlayers) {
+  const opponents = allPlayers.filter((_,j)=>j!==playerIdx);
+  if(!opponents.length) return '';
+  return opponents.map(op=>{
+    const dmg = p.cmdDmg[op.name]||0;
+    const danger = dmg>=21;
+    return `<div class="mtg-cmd-chip" onclick="openCmdPanel(${playerIdx},event)">
+      <div class="mtg-cmd-chip-from">${op.name.split(' ')[0]}</div>
+      <div class="mtg-cmd-chip-val${danger?' danger':''}">${dmg}</div>
+      <div class="mtg-cmd-chip-label">CMD</div>
+    </div>`;
+  }).join('');
+}
+
+function renderMtgTracker() {
+  document.getElementById('mtg-turn-label').textContent = 'Turn '+mtgState.turn;
+  const grid = document.getElementById('mtg-players-grid');
+  const n = mtgState.players.length;
+  const gs = getGridStyle(n);
+  const rotations = getPlayerRotations(n);
+
+  grid.style.gridTemplateColumns = gs.cols;
+  grid.style.gridTemplateRows = gs.rows;
+  if(gs.areas) grid.style.gridTemplateAreas = gs.areas;
+  else grid.style.gridTemplateAreas = '';
+
+  grid.innerHTML = mtgState.players.map((p, i) => {
+    const low = p.life<=5 && p.life>0;
+    const dead = p.life<=0 || p.eliminated;
+    const rot = rotations[i];
+    const tap = getTapConfig(rot);
+    const tapGrid = tap.axis==='rows'
+      ? 'grid-template-rows:1fr 1fr;grid-template-columns:1fr'
+      : 'grid-template-columns:1fr 1fr;grid-template-rows:1fr';
+
+    const cmdStrip = buildCmdStrip(p, i, mtgState.players);
+    const poisonShow = p.poison>0;
+
+    // grid-area for 3 and 5 player special layouts
+    const areaStyle = gs.areas ? `grid-area:p${i};` : '';
+
+    return `<div class="mtg-player${dead?' elim':''}" id="mp${i}" style="${areaStyle}background:${p.color}">
+
+      <!-- TAP ZONE — fills entire raw cell, split by axis -->
+      <div class="mtg-tap-zone" style="${tapGrid}">
+        <div class="mtg-tap-half"
+          ontouchstart="startHold(${i},${tap.first});event.preventDefault()" ontouchend="stopHold();event.preventDefault()" ontouchcancel="stopHold()"
+          onmousedown="startHold(${i},${tap.first})" onmouseup="stopHold()" onmouseleave="stopHold()"></div>
+        <div class="mtg-tap-half"
+          ontouchstart="startHold(${i},${tap.second});event.preventDefault()" ontouchend="stopHold();event.preventDefault()" ontouchcancel="stopHold()"
+          onmousedown="startHold(${i},${tap.second})" onmouseup="stopHold()" onmouseleave="stopHold()"></div>
+      </div>
+
+      <!-- ROTATED INNER — name, life, bottom bar all face the player -->
+      <div class="mtg-inner" style="transform:rotate(${rot}deg)">
+        <div class="mtg-delta" id="md${i}"></div>
+        <div class="mtg-player-name">${p.name}</div>
+        <div class="mtg-life-val${low?' low':''}${dead?' dead':''}" id="ml${i}">${dead&&p.life<=0?'💀':p.life}</div>
+        <div class="mtg-life-sub">${dead?'eliminated':'♥ life'}</div>
+        <div class="mtg-bottom-bar">
+          <div class="mtg-poison-row${poisonShow?' show':''}" id="pb${i}">
+            <span class="mtg-poison-row-label">☠ Poison</span>
+            <span class="mtg-poison-row-val">${p.poison}</span>
+          </div>
+          <div class="mtg-cmd-strip" id="cs${i}">${cmdStrip}</div>
+        </div>
+      </div>
+
+    </div>`;
+  }).join('');
+}
+
+let holdTimer=null, holdInterval=null, holdActive=false;
+
+function startHold(idx, dir) {
+  if(holdActive) return;
+  holdActive = true;
+  changeLife(idx, dir);
+  // Wait 600ms before starting repeat, then repeat every 180ms (much calmer than before)
+  holdTimer = setTimeout(() => {
+    holdInterval = setInterval(() => changeLife(idx, dir), 180);
+  }, 600);
+}
+
+function stopHold() {
+  clearTimeout(holdTimer);
+  clearInterval(holdInterval);
+  holdTimer = null;
+  holdInterval = null;
+  // Small delay before allowing next press to prevent accidental double-fire
+  setTimeout(() => { holdActive = false; }, 50);
+}
+
+function changeLife(idx, dir) {
+  const p = mtgState.players[idx]; if(p.eliminated) return;
+  p.life += dir;
+  const ml = document.getElementById('ml'+idx);
+  if(ml){
+    ml.textContent = p.life<=0 ? '💀' : p.life;
+    ml.className = 'mtg-life-val'+(p.life<=5&&p.life>0?' low':'')+(p.life<=0?' dead':'');
+    ml.classList.add('bump'); clearTimeout(ml._t); ml._t=setTimeout(()=>ml.classList.remove('bump'),120);
+  }
+  const md = document.getElementById('md'+idx);
+  if(md){
+    md.textContent=(dir>0?'+':'')+dir; md.classList.add('show');
+    clearTimeout(md._t2); md._t2=setTimeout(()=>md.classList.remove('show'),1400);
+  }
+  if(p.life<=0){ p.eliminated=true; document.getElementById('mp'+idx)?.classList.add('elim'); }
+}
+
+function updateCmdStrip(playerIdx) {
+  const p = mtgState.players[playerIdx];
+  const strip = document.getElementById('cs'+playerIdx);
+  if(strip) strip.innerHTML = buildCmdStrip(p, playerIdx, mtgState.players);
+}
+
+function nextTurn(){ mtgState.turn++; document.getElementById('mtg-turn-label').textContent='Turn '+mtgState.turn; toast('Turn '+mtgState.turn); }
+function rollDice(){ const r=Math.floor(Math.random()*20)+1; document.getElementById('mtg-result').textContent='🎲 '+r; toast('Rolled a '+r+'!'); }
+function flipCoin(){ const r=Math.random()>.5; document.getElementById('mtg-result').textContent=r?'🟡 Heads':'⚪ Tails'; toast(r?'Heads!':'Tails!'); }
+function randomizeMtgTurnOrder(){
+  const alive = mtgState.players.filter(p=>!p.eliminated);
+  if(!alive.length) return;
+  const winner = alive[Math.floor(Math.random()*alive.length)];
+  document.getElementById('mtg-result').textContent = '🎲 '+winner.name;
+  toast(winner.name+' goes first!');
+}
+function resetMtgGame(){ mtgState.players.forEach(p=>{p.life=mtgState.startLife;p.poison=0;p.cmdDmg={};p.eliminated=false;}); mtgState.turn=1; renderMtgTracker(); }
+
+async function endMtgGame() {
+  if(!confirm('End game and save results?')) return;
+  document.getElementById('mtg-tracker').classList.remove('open');
+  const surviving = mtgState.players.filter(p=>!p.eliminated);
+  const winner = surviving.length===1 ? surviving[0] : mtgState.players.reduce((a,b)=>a.life>b.life?a:b);
+  const game = {
+    name:'Magic: The Gathering', date:todayStr(), isMtg:true, isRetreat:false,
+    format:mtgState.format, year:new Date().getFullYear(),
+    players:mtgState.players.map(p=>({name:p.name,score:p.life,life:p.life,eliminated:p.eliminated,cmdDmg:p.cmdDmg||{},poison:p.poison||0})),
+    loggedBy:currentUser.uid, loggedByName:currentProfile?.name||'Unknown',
+    createdAt:firebase.firestore.FieldValue.serverTimestamp()
+  };
+  try {
+    await db.collection('games').add(game);
+    const sorted = [...game.players].sort((a,b)=>b.score-a.score);
+    await updatePlayerStats(game, sorted[0]);
+    const uid = findPlayerUid(winner.name);
+    if(uid) await db.collection('players').doc(uid).update({mtgWins:firebase.firestore.FieldValue.increment(1),mtgGames:firebase.firestore.FieldValue.increment(mtgState.players.length)});
+    toast('Game saved! 🧙');
+  } catch(e) { toast('Error: '+e.message); }
+  showPage('home');
+}
+
+// ============================================================
+//  CMD DAMAGE PANEL
+// ============================================================
+function openCmdPanel(idx, e) {
+  if(e) e.stopPropagation();
+  cmdActivePlayer = idx;
+  const p = mtgState.players[idx];
+  document.getElementById('cmd-title').textContent = p.name + ' — incoming damage';
+  document.getElementById('cmd-sub').textContent = 'Tap + when ' + p.name + ' takes commander damage from an opponent';
+  document.getElementById('poison-val').textContent = p.poison;
+  document.getElementById('cmd-rows').innerHTML = mtgState.players.filter((_,i)=>i!==idx).map(op=>{
+    const safeKey = op.name.replace(/[^a-zA-Z0-9]/g,'_');
+    const dmg = p.cmdDmg[op.name]||0;
+    const danger = dmg>=21;
+    return `<div class="cmd-row">
+      <div>
+        <div class="cmd-name">${op.name}</div>
+        ${danger?'<div style="font-size:11px;color:#e55;margin-top:2px">⚠ 21+ — eliminated!</div>':''}
+      </div>
+      <div class="cmd-ctr">
+        <button class="cmd-btn" onclick="changeCmdDmg('${op.name}',-1,${idx})">−</button>
+        <span class="cmd-val${danger?' danger':''}" id="cdv-${safeKey}">${dmg}</span>
+        <button class="cmd-btn" onclick="changeCmdDmg('${op.name}',1,${idx})">+</button>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('cmd-panel').classList.add('open');
+}
+
+function changeCmdDmg(fromName, dir, playerIdx) {
+  const p = mtgState.players[playerIdx];
+  p.cmdDmg[fromName] = Math.max(0,(p.cmdDmg[fromName]||0)+dir);
+  const safeKey = fromName.replace(/[^a-zA-Z0-9]/g,'_');
+  const el = document.getElementById('cdv-'+safeKey);
+  const dmg = p.cmdDmg[fromName];
+  if(el){ el.textContent=dmg; el.className='cmd-val'+(dmg>=21?' danger':''); }
+  // Auto subtract from life when adding cmd damage
+  if(dir>0) changeLife(playerIdx,-1);
+  // Update the inline strip on the player card
+  updateCmdStrip(playerIdx);
+  // Check for 21+ elimination
+  if(dmg>=21 && !p.eliminated){
+    p.eliminated=true;
+    document.getElementById('mp'+playerIdx)?.classList.add('elim');
+    toast(p.name+' eliminated by commander damage!');
+  }
+}
+
+function changePoison(dir) {
+  if(cmdActivePlayer<0) return;
+  const p = mtgState.players[cmdActivePlayer];
+  p.poison = Math.max(0,p.poison+dir);
+  document.getElementById('poison-val').textContent = p.poison;
+  // Update the inline poison row in the player cell
+  const badge = document.getElementById('pb'+cmdActivePlayer);
+  if(badge){
+    badge.className = 'mtg-poison-row'+(p.poison>0?' show':'');
+    badge.innerHTML = `<span class="mtg-poison-row-label">☠ Poison</span><span class="mtg-poison-row-val">${p.poison}</span>`;
+  }
+  if(p.poison>=10){
+    p.eliminated=true;
+    document.getElementById('mp'+cmdActivePlayer)?.classList.add('elim');
+    toast(p.name+' eliminated by poison!');
+  }
+}
+function closeCmdPanel() { document.getElementById('cmd-panel').classList.remove('open'); }
+function closeCmdPanelBg(e) { if(e.target===document.getElementById('cmd-panel')) closeCmdPanel(); }
+
+// ============================================================
+//  STATS
+// ============================================================
+function switchStatTab(t) {
+  currentStatTab = t;
+  ['alltime','year','retreat','hof'].forEach(id=>{document.getElementById('stab-'+id).classList.toggle('active',id===t);});
+  renderStats();
+}
+
+function renderStats() {
+  const el = document.getElementById('stats-content');
+  if (currentStatTab==='hof') { renderHof(el); return; }
+  if (currentStatTab==='retreat') { renderRetreatStats(el); return; }
+
+  const thisYear = new Date().getFullYear();
+  const games = currentStatTab==='year' ? allGames.filter(g=>g.year===thisYear||g.date?.startsWith(thisYear.toString())) : allGames;
+  const players = Object.values(allPlayers);
+
+  if (!players.length) { el.innerHTML='<div class="empty-state"><div class="empty-icon">📊</div>No data yet.</div>'; return; }
+
+  // Compute per-player stats from games
+  const stats = {};
+  players.forEach(p => stats[p.name] = {name:p.name,wins:0,losses:0,games:0,totalScore:0,mtgWins:0,mtgGames:0});
+  games.forEach(g => {
+    const sorted = [...(g.players||[])].sort((a,b)=>b.score-a.score);
+    const winner = sorted[0];
+    g.players?.forEach(p => {
+      if(!stats[p.name]) stats[p.name]={name:p.name,wins:0,losses:0,games:0,totalScore:0,mtgWins:0,mtgGames:0};
+      stats[p.name].games++;
+      stats[p.name].totalScore += p.score||0;
+      if(p.name===winner?.name) stats[p.name].wins++;
+      else stats[p.name].losses++;
+      if(g.isMtg){stats[p.name].mtgGames++;if(p.name===winner?.name)stats[p.name].mtgWins++;}
+    });
+  });
+
+  const sorted = Object.values(stats).filter(p=>p.games>0).sort((a,b)=>b.wins-a.wins);
+  if(!sorted.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">📊</div>No games yet.</div>';return;}
+
+  el.innerHTML = `<div style="margin-bottom:16px">`+sorted.map((p,i)=>{
+    const wr = p.games ? Math.round(p.wins/p.games*100) : 0;
+    const icon = i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1);
+    return `<div class="card" style="margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="font-size:22px;min-width:30px">${icon}</div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:15px">${p.name}</div>
+          <div style="font-size:12px;color:var(--text2)">${p.games} games · ${wr}% win rate${p.mtgGames?' · 🧙 '+p.mtgWins+'/'+p.mtgGames+' MTG':''}</div>
+        </div>
+        <span class="badge badge-win">${p.wins}W</span><span class="badge badge-loss"> ${p.losses}L</span>
+      </div>
+      <div style="margin-top:8px;height:5px;border-radius:3px;background:var(--bg)"><div style="height:100%;width:${wr}%;background:var(--purple);border-radius:3px;transition:width 0.4s"></div></div>
+    </div>`;
+  }).join('')+`</div>`;
+
+  // Top games
+  const freq = {}; games.forEach(g=>freq[g.name]=(freq[g.name]||0)+1);
+  const topGames = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  if(topGames.length) el.innerHTML += `<h2 style="margin-bottom:10px">Most played</h2>`+topGames.map(([n,c])=>`<div class="card" style="margin-bottom:6px;display:flex;align-items:center;justify-content:space-between"><span style="font-weight:600">${n}</span><span class="chip">${c} plays</span></div>`).join('');
+}
+
+function renderRetreatStats(el) {
+  const retreatGames = allGames.filter(g=>g.isRetreat);
+  if(!retreatGames.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">🏕</div>No retreat games logged yet.</div>';return;}
+  const stats = {};
+  retreatGames.forEach(g=>{
+    const sorted=[...(g.players||[])].sort((a,b)=>b.score-a.score);const winner=sorted[0];
+    g.players?.forEach(p=>{
+      if(!stats[p.name])stats[p.name]={name:p.name,wins:0,losses:0,games:0};
+      stats[p.name].games++;
+      if(p.name===winner?.name)stats[p.name].wins++;else stats[p.name].losses++;
+    });
+  });
+  const sorted=Object.values(stats).sort((a,b)=>b.wins-a.wins);
+  el.innerHTML=`<div class="retreat-banner" style="margin-bottom:16px"><div style="font-size:13px;color:rgba(255,255,255,0.6)">🏕 Year-end retreat</div><div style="font-size:15px;font-weight:600;margin-top:2px">${retreatGames.length} games played</div></div>`+
+  sorted.map((p,i)=>{
+    const wr=p.games?Math.round(p.wins/p.games*100):0;const icon=i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1);
+    return `<div class="card" style="margin-bottom:8px"><div style="display:flex;align-items:center;gap:10px"><div style="font-size:20px">${icon}</div><div style="flex:1"><div style="font-weight:700">${p.name}</div><div style="font-size:12px;color:var(--text2)">${p.games} games · ${wr}% win rate</div></div><span class="badge badge-win">${p.wins}W</span></div></div>`;
+  }).join('');
+}
+
+function renderHof(el) {
+  if(!hallOfFame.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">🏛</div>No years archived yet.<br>Use year-end awards to archive.</div>';return;}
+  el.innerHTML=hallOfFame.map(yr=>`
+    <div class="hof-year" onclick="toggleHofYear('hof-${yr.year}')">
+      <div class="hof-year-title">🏆 ${yr.year} Season</div><span style="color:var(--purple)">▼</span>
+    </div>
+    <div class="hof-awards" id="hof-${yr.year}">
+      ${(yr.awards||[]).map(a=>`<div class="card" style="margin-bottom:6px;display:flex;align-items:center;gap:12px"><div style="font-size:24px">${a.icon||'🏆'}</div><div><div style="font-weight:700;font-size:14px">${a.name}</div><div style="font-size:13px;color:var(--text2)">${a.winner}</div>${a.stat?`<div style="font-size:11px;color:var(--text3)">${a.stat}</div>`:''}</div></div>`).join('')}
+    </div>`).join('');
+}
+function toggleHofYear(id){const el=document.getElementById(id);el.classList.toggle('open');}
+
+// ============================================================
+//  CALENDAR
+// ============================================================
+function renderCal() {
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-month-label').textContent=months[calViewMonth]+' '+calViewYear;
+  const grid=document.getElementById('cal-grid');
+  grid.innerHTML='';
+  ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d=>{const h=document.createElement('div');h.className='cal-day-head';h.textContent=d;grid.appendChild(h);});
+  const now=new Date();
+  const first=new Date(calViewYear,calViewMonth,1).getDay();
+  const dim=new Date(calViewYear,calViewMonth+1,0).getDate();
+  const prev=new Date(calViewYear,calViewMonth,0).getDate();
+  const totalPlayers=Math.max(Object.keys(allPlayers).length,1);
+
+  for(let i=0;i<first;i++){const d=document.createElement('div');d.className='cal-day other-month';d.textContent=prev-first+1+i;grid.appendChild(d);}
+  for(let d=1;d<=dim;d++){
+    const el=document.createElement('div');el.className='cal-day';
+    const key=`${calViewYear}-${String(calViewMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dow=new Date(calViewYear,calViewMonth,d).getDay();
+    const isMonTue=dow===1||dow===2;
+    const ev=calEvents[key];
+    const avail=calAvailability[key]||{};
+    const myStatus=avail[currentUser?.uid];
+    const blocked=Object.values(avail).filter(s=>s==='blocked').length;
+    const free=totalPlayers-blocked;
+
+    el.textContent=d;
+    if(d===now.getDate()&&calViewMonth===now.getMonth()&&calViewYear===now.getFullYear())el.classList.add('today');
+    if(ev&&ev.type==='confirmed')el.classList.add('has-event');
+    else if(ev&&ev.type==='proposed')el.classList.add('proposed');
+    if(myStatus==='blocked')el.classList.add('blocked');
+    if(isMonTue&&!ev&&myStatus!=='blocked')el.classList.add('preferred');
+
+    if(Object.keys(avail).length>0){
+      const bar=document.createElement('div');bar.className='avail-bar';
+      Object.values(avail).slice(0,6).forEach(s=>{const dot=document.createElement('div');dot.className='avail-dot';dot.style.background=s==='blocked'?'#e55':'#3B6D11';bar.appendChild(dot);});
+      el.appendChild(bar);
+    }
+    el.onclick=()=>showCalDay(key,d);
+    grid.appendChild(el);
+  }
+  const total=first+dim;const rem=total%7===0?0:7-(total%7);
+  for(let i=1;i<=rem;i++){const d=document.createElement('div');d.className='cal-day other-month';d.textContent=i;grid.appendChild(d);}
+
+  renderBestNight();
+  renderUpcoming();
+  document.getElementById('cal-detail').style.display='none';
+}
+
+function changeMonth(d){calViewMonth+=d;if(calViewMonth>11){calViewMonth=0;calViewYear++;}if(calViewMonth<0){calViewMonth=11;calViewYear--;}renderCal();}
+
+function showCalDay(key,day){
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const ev=calEvents[key]||null;
+  const avail=calAvailability[key]||{};
+  const myStatus=avail[currentUser?.uid]||'free';
+  const totalPlayers=Object.keys(allPlayers).length;
+  const blockedCount=Object.values(avail).filter(s=>s==='blocked').length;
+  const freeCount=totalPlayers-blockedCount;
+
+  let confirmedNames=[], declinedNames=[];
+  if(ev){confirmedNames=(ev.confirmed||[]).map(uid=>allPlayers[uid]?.name||uid);declinedNames=(ev.declined||[]).map(uid=>allPlayers[uid]?.name||uid);}
+
+  const detail=document.getElementById('cal-detail');
+  detail.style.display='block';
+  detail.innerHTML=`<div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <h2 style="margin:0">${months[calViewMonth]} ${day}, ${calViewYear}</h2>
+      <button onclick="document.getElementById('cal-detail').style.display='none'" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text2)">×</button>
+    </div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:12px">${freeCount}/${totalPlayers} players available</div>
+    ${ev?`<div style="background:var(--purple-light);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:12px">
+      <div style="font-weight:700;color:var(--purple)">${ev.name}</div>
+      <div style="font-size:12px;color:var(--purple);margin-top:2px">${ev.type==='confirmed'?'✅ Confirmed':'📋 Proposed'}</div>
+      ${ev.notes?`<div style="font-size:12px;color:var(--purple);margin-top:4px">${ev.notes}</div>`:''}
+      ${confirmedNames.length?`<div style="font-size:12px;color:var(--purple);margin-top:4px">Going: ${confirmedNames.join(', ')}</div>`:''}
+      ${declinedNames.length?`<div style="font-size:12px;color:var(--purple);margin-top:4px">Can't make it: ${declinedNames.join(', ')}</div>`:''}
+    </div>`:''}
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+      <button class="btn btn-sm ${myStatus==='blocked'?'btn-danger':''}" onclick="toggleAvailability('${key}','${myStatus}')">${myStatus==='blocked'?'✓ Marked unavailable — tap to undo':'Mark myself unavailable'}</button>
+    </div>
+    ${!ev?`<div class="divider"></div>
+    <div style="margin-top:8px">
+      <div class="form-row"><label>Propose a game night</label><input type="text" id="cal-ev-name-input" placeholder="Game night @ someone's place…" value="Game Night"></div>
+      <div class="form-row"><label>Notes (optional)</label><input type="text" id="cal-ev-notes-input" placeholder="e.g. bring snacks!"></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary btn-sm" onclick="proposeNight('${key}')">Propose this date</button>
+        <button class="btn btn-sm" onclick="scheduleNight('${key}')">Confirm scheduled</button>
+      </div>
+    </div>`:`<div style="display:flex;gap:8px">
+      ${ev.type==='proposed'?`<button class="btn btn-primary btn-sm" onclick="confirmAttendance('${key}','confirm')">✓ I'll be there</button><button class="btn btn-sm btn-danger" onclick="confirmAttendance('${key}','decline')">✗ Can't make it</button>`:''}
+      <button class="btn btn-sm btn-danger" onclick="deleteCalEvent('${key}')">Delete event</button>
+    </div>`}
+  </div>`;
+}
+
+async function toggleAvailability(key,current){
+  const newStatus=current==='blocked'?'free':'blocked';
+  const docId=key+'_'+currentUser.uid;
+  try{
+    if(newStatus==='free'){await db.collection('availability').doc(docId).delete();}
+    else{await db.collection('availability').doc(docId).set({date:key,uid:currentUser.uid,status:'blocked',updatedAt:firebase.firestore.FieldValue.serverTimestamp()});}
+    toast(newStatus==='blocked'?'Marked unavailable':'Availability cleared');
+  }catch(e){toast('Error: '+e.message);}
+}
+
+async function proposeNight(key){
+  const name=document.getElementById('cal-ev-name-input')?.value.trim()||'Game Night';
+  const notes=document.getElementById('cal-ev-notes-input')?.value.trim()||'';
+  try{await db.collection('calEvents').doc(key).set({name,notes,type:'proposed',proposedBy:currentUser.uid,confirmed:[],declined:[],createdAt:firebase.firestore.FieldValue.serverTimestamp()});toast('Game night proposed! 📅');}
+  catch(e){toast('Error: '+e.message);}
+}
+async function scheduleNight(key){
+  const name=document.getElementById('cal-ev-name-input')?.value.trim()||'Game Night';
+  const notes=document.getElementById('cal-ev-notes-input')?.value.trim()||'';
+  try{await db.collection('calEvents').doc(key).set({name,notes,type:'confirmed',confirmedBy:currentUser.uid,confirmed:[currentUser.uid],declined:[],createdAt:firebase.firestore.FieldValue.serverTimestamp()});toast('Game night scheduled! ✅');}
+  catch(e){toast('Error: '+e.message);}
+}
+async function confirmAttendance(key,action){
+  const ev=calEvents[key]; if(!ev)return;
+  const confirmed=[...(ev.confirmed||[])].filter(uid=>uid!==currentUser.uid);
+  const declined=[...(ev.declined||[])].filter(uid=>uid!==currentUser.uid);
+  if(action==='confirm')confirmed.push(currentUser.uid);
+  else declined.push(currentUser.uid);
+  try{await db.collection('calEvents').doc(key).update({confirmed,declined});toast(action==='confirm'?"You're in! ✓":"Marked as can't attend");}
+  catch(e){toast('Error: '+e.message);}
+}
+async function deleteCalEvent(key){
+  if(!confirm('Delete this event?'))return;
+  try{await db.collection('calEvents').doc(key).delete();toast('Event deleted');document.getElementById('cal-detail').style.display='none';}
+  catch(e){toast('Error: '+e.message);}
+}
+
+function renderBestNight(){
+  const now=new Date(); const today=todayStr();
+  const totalPlayers=Math.max(Object.keys(allPlayers).length,1);
+  let best=null,bestScore=-1;
+  for(let d=0;d<28;d++){
+    const dt=new Date(now);dt.setDate(now.getDate()+d);
+    const key=dateToStr(dt);
+    if(calEvents[key])continue;
+    const dow=dt.getDay();
+    const isMonTue=dow===1||dow===2;
+    const avail=calAvailability[key]||{};
+    const blocked=Object.values(avail).filter(s=>s==='blocked').length;
+    const free=totalPlayers-blocked;
+    const score=free*10+(isMonTue?5:0);
+    if(score>bestScore){bestScore=score;best={key,date:dt,free,total:totalPlayers,isMonTue};}
+  }
+  const el=document.getElementById('best-night-banner');
+  if(!best){el.innerHTML='';return;}
+  const label=best.date.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+  el.innerHTML=`<div class="card" style="background:var(--purple-light);border-color:var(--purple);margin-bottom:8px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:24px">⭐</span>
+      <div style="flex:1">
+        <div style="font-weight:700;color:var(--purple);font-size:14px">Best upcoming night</div>
+        <div style="font-size:13px;color:var(--purple)">${label}${best.isMonTue?' ★':''} · ${best.free}/${best.total} free</div>
+      </div>
+      <button class="btn btn-sm btn-primary" onclick="showCalAndPropose('${best.key}')">Propose</button>
+    </div>
+  </div>`;
+}
+
+function showCalAndPropose(key){
+  const d=new Date(key+'T00:00:00');
+  calViewMonth=d.getMonth();calViewYear=d.getFullYear();
+  renderCal();
+  setTimeout(()=>showCalDay(key,d.getDate()),100);
+}
+
+function renderUpcoming(){
+  const today=todayStr();
+  const up=Object.entries(calEvents).filter(([k])=>k>=today).sort((a,b)=>a[0].localeCompare(b[0])).slice(0,4);
+  const el=document.getElementById('cal-upcoming');
+  if(!up.length){el.innerHTML='';return;}
+  el.innerHTML='<h2 style="margin-bottom:10px">Upcoming</h2>'+up.map(([date,ev])=>{
+    const d=new Date(date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    const cnt=(ev.confirmed||[]).length;
+    return `<div class="card" style="margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer" onclick="showCalAndPropose('${date}')">
+      <div style="width:8px;height:8px;border-radius:50%;background:${ev.type==='confirmed'?'var(--purple)':'#3B6D11'};flex-shrink:0"></div>
+      <div style="flex:1"><div style="font-weight:600;font-size:14px">${ev.name}</div>${ev.notes?`<div style="font-size:12px;color:var(--text2)">${ev.notes}</div>`:''}</div>
+      <div style="text-align:right"><div style="font-size:12px;color:var(--text2)">${d}</div>${cnt?`<div style="font-size:11px;color:var(--green)">${cnt} going</div>`:''}</div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+//  YEAR-END AWARDS
+// ============================================================
+function openAwards() {
+  const year=new Date().getFullYear();
+  document.getElementById('awards-year-label').textContent=year+' Season';
+  customAwards=[];
+  renderAwardsList(year);
+  document.getElementById('custom-awards-list').innerHTML='';
+  document.getElementById('awards-screen').classList.add('open');
+}
+function closeAwards(){ document.getElementById('awards-screen').classList.remove('open'); }
+
+function renderAwardsList(year) {
+  const games=allGames.filter(g=>g.year===year||g.date?.startsWith(year.toString()));
+  const stats={};
+  games.forEach(g=>{
+    const sorted=[...(g.players||[])].sort((a,b)=>b.score-a.score);const winner=sorted[0];
+    g.players?.forEach(p=>{
+      if(!stats[p.name])stats[p.name]={name:p.name,wins:0,losses:0,games:0,mtgWins:0,mtgGames:0};
+      stats[p.name].games++;
+      if(p.name===winner?.name)stats[p.name].wins++;else stats[p.name].losses++;
+      if(g.isMtg){stats[p.name].mtgGames++;if(p.name===winner?.name)stats[p.name].mtgWins++;}
+    });
+  });
+
+  const players=Object.values(stats).filter(p=>p.games>0);
+  if(!players.length){document.getElementById('awards-list').innerHTML='<p style="color:#888;font-size:14px">No games logged for '+year+' yet.</p>';return;}
+
+  const champion=players.reduce((a,b)=>a.wins>b.wins?a:b);
+  const mostGames=players.reduce((a,b)=>a.games>b.games?a:b);
+  const bestRate=players.filter(p=>p.games>=3).reduce((a,b)=>(a.wins/a.games)>(b.wins/b.games)?a:b,players[0]);
+  const leastWins=players.reduce((a,b)=>a.losses>b.losses?a:b);
+  const mtgPlayers=players.filter(p=>p.mtgGames>0);
+  const mtgChamp=mtgPlayers.length?mtgPlayers.reduce((a,b)=>a.mtgWins>b.mtgWins?a:b):null;
+
+  const awards=[
+    {icon:'🏆',name:'Champion',winner:champion.name,stat:`${champion.wins} wins`},
+    {icon:'🎯',name:'Most Consistent',winner:bestRate.name,stat:`${Math.round(bestRate.wins/bestRate.games*100)}% win rate (min 3 games)`},
+    {icon:'🎲',name:'Most Dedicated',winner:mostGames.name,stat:`${mostGames.games} games played`},
+    {icon:'😤',name:'Tough Season',winner:leastWins.name,stat:`${leastWins.losses} losses (keep your head up!)`},
+    ...(mtgChamp?[{icon:'🧙',name:'MTG Archmage',winner:mtgChamp.name,stat:`${mtgChamp.mtgWins} MTG wins`}]:[]),
+  ];
+
+  // Retreat MVP
+  const retreatGames=allGames.filter(g=>g.isRetreat&&(g.year===year||g.date?.startsWith(year.toString())));
+  if(retreatGames.length){
+    const rs={};retreatGames.forEach(g=>{const sorted=[...(g.players||[])].sort((a,b)=>b.score-a.score);const w=sorted[0];g.players?.forEach(p=>{if(!rs[p.name])rs[p.name]={name:p.name,wins:0};if(p.name===w?.name)rs[p.name].wins++;});});
+    const retreatMvp=Object.values(rs).reduce((a,b)=>a.wins>b.wins?a:b);
+    awards.push({icon:'🏕',name:'Retreat MVP',winner:retreatMvp.name,stat:`${retreatMvp.wins} retreat wins`});
+  }
+
+  document.getElementById('awards-list').innerHTML=awards.map(a=>`
+    <div class="award-card">
+      <div class="award-icon">${a.icon}</div>
+      <div><div class="award-name">${a.name}</div><div class="award-winner">${a.winner}</div><div class="award-stat">${a.stat}</div></div>
+    </div>`).join('');
+  document.getElementById('awards-list')._awards=awards;
+}
+
+function addCustomAward(){
+  const name=document.getElementById('custom-award-name').value.trim();
+  const winner=document.getElementById('custom-award-winner').value.trim();
+  if(!name||!winner)return toast('Fill in award name and winner');
+  customAwards.push({icon:'⭐',name,winner,custom:true});
+  document.getElementById('custom-awards-list').innerHTML=customAwards.map((a,i)=>`
+    <div class="award-card">
+      <div class="award-icon">${a.icon}</div>
+      <div style="flex:1"><div class="award-name">${a.name}</div><div class="award-winner">${a.winner}</div></div>
+      <button onclick="customAwards.splice(${i},1);document.getElementById('custom-award-name').value='';document.getElementById('custom-award-winner').value='';addCustomAward()&&false;renderCustomAwardsList()" style="background:none;border:none;color:#888;font-size:18px;cursor:pointer">×</button>
+    </div>`).join('');
+  document.getElementById('custom-award-name').value='';
+  document.getElementById('custom-award-winner').value='';
+  toast('Award added!');
+}
+
+async function confirmYearReset(){
+  const year=new Date().getFullYear();
+  if(!confirm(`Archive ${year} season and reset all stats? This cannot be undone. Awards will be saved to the Hall of Fame.`))return;
+  const awardsEl=document.getElementById('awards-list');
+  const autoAwards=awardsEl._awards||[];
+  const allAwards=[...autoAwards,...customAwards];
+  try{
+    await db.collection('hallOfFame').doc(String(year)).set({year,awards:allAwards,archivedAt:firebase.firestore.FieldValue.serverTimestamp()});
+    // Archive games with year tag (don't delete, just mark archived)
+    const batch=db.batch();
+    const yearGames=allGames.filter(g=>g.year===year||g.date?.startsWith(year.toString()));
+    yearGames.forEach(g=>{batch.update(db.collection('games').doc(g.id),{archived:true});});
+    // Reset player stats
+    Object.keys(allPlayers).forEach(uid=>{batch.update(db.collection('players').doc(uid),{wins:0,losses:0,games:0,mtgWins:0,mtgGames:0});});
+    await batch.commit();
+    toast('Season archived! Starting fresh 🎉');
+    closeAwards();
+  }catch(e){toast('Error: '+e.message);}
+}
+
+// ============================================================
+//  UTILS
+// ============================================================
+function todayStr(){ return new Date().toISOString().split('T')[0]; }
+function dateToStr(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function formatDateShort(s){if(!s)return '';try{return new Date(s+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});}catch(e){return s;}}
+</script>
+</body>
+</html>
