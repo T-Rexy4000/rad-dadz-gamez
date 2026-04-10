@@ -148,50 +148,46 @@ input:focus,select:focus,textarea:focus{border-color:var(--purple)}
 .mtg-players-grid{flex:1;display:grid;overflow:hidden;position:relative}
 
 /* Each player cell — a positioning context */
-.mtg-player{position:relative;border:1px solid #1a1a28;user-select:none;overflow:hidden;transition:opacity 0.3s}
+.mtg-player{position:relative;border:1px solid #1a1a28;user-select:none;overflow:hidden;transition:opacity 0.3s;display:flex;flex-direction:column}
 .mtg-player.elim{opacity:0.28;filter:grayscale(1)}
 
-/* Tap zones — always fill the raw cell, split vertically in raw coordinates.
-   Dir correction happens in JS based on rotation angle. */
-.mtg-tap-zone{position:absolute;inset:0;display:grid;grid-template-rows:1fr 1fr;z-index:3}
-.mtg-tap-half{cursor:pointer;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.03);font-size:16px;transition:background 0.1s}
+/* Tap zones — always fill the raw cell */
+.mtg-tap-zone{position:absolute;inset:0;z-index:3;display:grid}
+.mtg-tap-half{cursor:pointer;transition:background 0.1s}
 .mtg-tap-half:active{background:rgba(255,255,255,0.07)}
 
-/* Rotated content wrapper — sits inside the cell, same size, rotates everything */
-.mtg-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;z-index:2;padding:8px 4px 0}
+/* Center content area — grows to fill space above CMD strip */
+.mtg-center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;pointer-events:none;z-index:2;padding:6px 4px 0;overflow:hidden}
 
-/* Name — large and easy to read from across a table */
-.mtg-player-name{font-size:22px;font-weight:800;color:rgba(255,255,255,0.75);letter-spacing:0.5px;margin-bottom:6px;text-align:center;max-width:92%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 4px rgba(0,0,0,0.6)}
+/* Name — large, bold, rotated to face the player */
+.mtg-player-name{font-size:20px;font-weight:800;color:rgba(255,255,255,0.8);letter-spacing:0.3px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 4px rgba(0,0,0,0.7);max-width:100%}
 
 /* Life total */
-.mtg-life-val{font-size:72px;font-weight:800;color:#f0f0f5;line-height:1;transition:transform 0.08s;text-align:center;text-shadow:0 2px 8px rgba(0,0,0,0.5)}
-.mtg-life-val.bump{transform:scale(1.12)}
+.mtg-life-val{font-size:72px;font-weight:800;color:#f0f0f5;line-height:1;text-align:center;text-shadow:0 2px 8px rgba(0,0,0,0.5)}
+.mtg-life-val.bump{animation:lifebump 0.12s ease-out}
+@keyframes lifebump{0%{transform:scale(1)}50%{transform:scale(1.12)}100%{transform:scale(1)}}
 .mtg-life-val.low{color:#e55}
 .mtg-life-val.dead{color:#2a2a3a}
-.mtg-life-sub{font-size:10px;color:#444;margin-top:2px;text-align:center}
+.mtg-life-sub{font-size:11px;color:#444;margin-top:2px;text-align:center}
 
-/* Delta flash — top-right of the rotated inner box */
-.mtg-delta{position:absolute;top:6px;right:8px;font-size:15px;font-weight:700;color:var(--gold-light);opacity:0;transition:opacity 0.3s;pointer-events:none}
+/* Delta flash */
+.mtg-delta{position:absolute;top:6px;right:8px;font-size:15px;font-weight:700;color:var(--gold-light);opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:5}
 .mtg-delta.show{opacity:1}
 
-/* Bottom info bar — lives inside .mtg-inner so it rotates with everything else.
-   Pushed to the visual bottom using margin-top:auto */
-.mtg-bottom-bar{width:100%;margin-top:auto;display:flex;flex-direction:column;gap:0;pointer-events:all}
+/* CMD strip — ALWAYS at physical bottom of cell, never rotated */
+.mtg-cmd-strip{width:100%;background:rgba(0,0,0,0.65);display:flex;border-top:1px solid rgba(255,255,255,0.07);flex-shrink:0;z-index:4}
+.mtg-cmd-chip{flex:1;display:flex;flex-direction:column;align-items:center;padding:5px 2px;border-right:1px solid rgba(255,255,255,0.06);cursor:pointer;pointer-events:all;min-width:0}
+.mtg-cmd-chip:last-child{border-right:none}
+.mtg-cmd-chip-from{font-size:9px;color:#666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;text-align:center}
+.mtg-cmd-chip-val{font-size:15px;font-weight:800;color:#f0f0f5;line-height:1.1}
+.mtg-cmd-chip-val.danger{color:#e55}
+.mtg-cmd-chip-label{font-size:7px;color:#555;text-transform:uppercase;letter-spacing:0.3px}
 
-/* Poison row */
-.mtg-poison-row{display:flex;align-items:center;justify-content:center;gap:5px;padding:3px 8px;background:rgba(150,50,200,0.15);border-top:1px solid rgba(150,50,200,0.25);display:none}
+/* Poison row — above CMD strip, also not rotated */
+.mtg-poison-row{display:none;align-items:center;justify-content:center;gap:5px;padding:3px 8px;background:rgba(150,50,200,0.2);border-top:1px solid rgba(150,50,200,0.3);flex-shrink:0;z-index:4}
 .mtg-poison-row.show{display:flex}
 .mtg-poison-row-label{font-size:10px;color:#cc88ff}
 .mtg-poison-row-val{font-size:12px;font-weight:700;color:#cc88ff}
-
-/* Commander damage strip */
-.mtg-cmd-strip{width:100%;background:rgba(0,0,0,0.6);display:flex;border-top:1px solid rgba(255,255,255,0.07)}
-.mtg-cmd-chip{flex:1;display:flex;flex-direction:column;align-items:center;padding:4px 2px;border-right:1px solid rgba(255,255,255,0.06);cursor:pointer;pointer-events:all;min-width:0}
-.mtg-cmd-chip:last-child{border-right:none}
-.mtg-cmd-chip-from{font-size:9px;color:#666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;text-align:center}
-.mtg-cmd-chip-val{font-size:14px;font-weight:800;color:#f0f0f5;line-height:1.1}
-.mtg-cmd-chip-val.danger{color:#e55}
-.mtg-cmd-chip-label{font-size:7px;color:#555;text-transform:uppercase;letter-spacing:0.3px}
 
 /* Controls bar */
 .mtg-controls{background:#13131f;border-top:1px solid #2a2a3e;padding:8px 10px;display:flex;gap:6px;align-items:center;flex-shrink:0;flex-wrap:wrap}
@@ -1343,7 +1339,9 @@ function getGridStyle(n) {
   // 3p: two across the top, one spanning full bottom
   if(n===3) return {cols:'1fr 1fr', rows:'1fr 1fr',
     areas:'"p0 p1" "p2 p2"'};
-  // 4p CLOCKWISE: top-left=P0, top-right=P1, bottom-right=P2, bottom-left=P3
+  // 4p CLOCKWISE: top-left=P0(faces left), top-right=P1(faces up),
+  //               bottom-right=P2(faces right), bottom-left=P3(faces down)
+  // Grid rows: row1 = "p0 p1", row2 = "p3 p2"  (P3 left, P2 right = P2 is bottom-right)
   if(n===4) return {cols:'1fr 1fr', rows:'1fr 1fr',
     areas:'"p0 p1" "p3 p2"'};
   // 5p: two top, middle span, two bottom
@@ -1407,16 +1405,19 @@ function renderMtgTracker() {
     const tapGrid = tap.axis==='rows'
       ? 'grid-template-rows:1fr 1fr;grid-template-columns:1fr'
       : 'grid-template-columns:1fr 1fr;grid-template-rows:1fr';
-
     const cmdStrip = buildCmdStrip(p, i, mtgState.players);
     const poisonShow = p.poison>0;
+    // Rotate only the text content, not the whole cell
+    // For 90/270° cells, we also need to constrain the name width
+    // to the cell's shorter dimension so it doesn't overflow
+    const textStyle = rot ? `transform:rotate(${rot}deg);` : '';
+    // For side-facing cells (90/270), swap the effective width constraint
+    const isSide = rot===90 || rot===270;
+    // Name size: smaller for side-facing cells since height is constrained
+    const nameSize = isSide ? '16px' : '20px';
 
-    // All layouts now use grid-area
-    const areaStyle = `grid-area:p${i};`;
+    return `<div class="mtg-player${dead?' elim':''}" id="mp${i}" style="grid-area:p${i};background:${p.color}">
 
-    return `<div class="mtg-player${dead?' elim':''}" id="mp${i}" style="${areaStyle}background:${p.color}">
-
-      <!-- TAP ZONE — fills entire raw cell, split by axis -->
       <div class="mtg-tap-zone" style="${tapGrid}">
         <div class="mtg-tap-half"
           ontouchstart="startHold(${i},${tap.first});event.preventDefault()" ontouchend="stopHold();event.preventDefault()" ontouchcancel="stopHold()"
@@ -1426,20 +1427,21 @@ function renderMtgTracker() {
           onmousedown="startHold(${i},${tap.second})" onmouseup="stopHold()" onmouseleave="stopHold()"></div>
       </div>
 
-      <!-- ROTATED INNER — name, life, bottom bar all face the player -->
-      <div class="mtg-inner" style="transform:rotate(${rot}deg)">
-        <div class="mtg-delta" id="md${i}"></div>
-        <div class="mtg-player-name">${p.name}</div>
-        <div class="mtg-life-val${low?' low':''}${dead?' dead':''}" id="ml${i}">${dead&&p.life<=0?'💀':p.life}</div>
-        <div class="mtg-life-sub">${dead?'eliminated':'♥ life'}</div>
-        <div class="mtg-bottom-bar">
-          <div class="mtg-poison-row${poisonShow?' show':''}" id="pb${i}">
-            <span class="mtg-poison-row-label">☠ Poison</span>
-            <span class="mtg-poison-row-val">${p.poison}</span>
-          </div>
-          <div class="mtg-cmd-strip" id="cs${i}">${cmdStrip}</div>
+      <div class="mtg-delta" id="md${i}"></div>
+
+      <div class="mtg-center">
+        <div style="${textStyle}display:flex;flex-direction:column;align-items:center;gap:4px">
+          <div class="mtg-player-name" style="font-size:${nameSize}">${p.name}</div>
+          <div class="mtg-life-val${low?' low':''}${dead?' dead':''}" id="ml${i}">${dead&&p.life<=0?'💀':p.life}</div>
+          <div class="mtg-life-sub">${dead?'eliminated':'♥ life'}</div>
         </div>
       </div>
+
+      <div class="mtg-poison-row${poisonShow?' show':''}" id="pb${i}">
+        <span class="mtg-poison-row-label">☠ Poison</span>
+        <span class="mtg-poison-row-val">${p.poison}</span>
+      </div>
+      <div class="mtg-cmd-strip" id="cs${i}">${cmdStrip}</div>
 
     </div>`;
   }).join('');
@@ -1577,11 +1579,10 @@ function changePoison(dir) {
   const p = mtgState.players[cmdActivePlayer];
   p.poison = Math.max(0,p.poison+dir);
   document.getElementById('poison-val').textContent = p.poison;
-  // Update the inline poison row in the player cell
-  const badge = document.getElementById('pb'+cmdActivePlayer);
-  if(badge){
-    badge.className = 'mtg-poison-row'+(p.poison>0?' show':'');
-    badge.innerHTML = `<span class="mtg-poison-row-label">☠ Poison</span><span class="mtg-poison-row-val">${p.poison}</span>`;
+  const row = document.getElementById('pb'+cmdActivePlayer);
+  if(row){
+    row.className = 'mtg-poison-row'+(p.poison>0?' show':'');
+    row.innerHTML = `<span class="mtg-poison-row-label">☠ Poison</span><span class="mtg-poison-row-val">${p.poison}</span>`;
   }
   if(p.poison>=10){
     p.eliminated=true;
