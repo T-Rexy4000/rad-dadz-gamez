@@ -1563,6 +1563,7 @@ function renderMtgSetupPlayers() {
   }).join('');
 
   const colors = ['#1a1220','#0d1a1a','#1a1510','#0d1520','#1e100e','#0e1a0e'];
+  const n = mtgSetupPlayers.length;
   const seatLabels4 = ['1st (top-left→left)','2nd (top-right→up)','3rd (bottom-right→right)','4th (bottom-left→down)'];
   const seatLabels5 = ['1st (bottom-left→left)','2nd (top-left→left)','3rd (top-right→right)','4th (bottom-right→right)','5th (bottom→down)'];
   const seatLabels = n===5 ? seatLabels5 : n===4 ? seatLabels4 : [];
