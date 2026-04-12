@@ -306,7 +306,55 @@ input:focus,select:focus,textarea:focus{border-color:var(--purple)}
 .mtg-rand-result.show{display:block}
 .mtg-rand-winner{font-size:20px;font-weight:700;color:var(--gold-light);margin-bottom:2px}
 .mtg-rand-sub{font-size:11px;color:#666}
-</style>
+
+/* WINNER SELECT MODAL */
+.winner-modal{position:fixed;inset:0;z-index:350;background:rgba(0,0,0,0.7);display:none;align-items:flex-end;justify-content:center}
+.winner-modal.open{display:flex}
+.winner-inner{width:100%;max-width:480px;background:var(--card);border-radius:18px 18px 0 0;padding:20px 16px 36px;border-top:0.5px solid var(--border);max-height:85vh;overflow-y:auto}
+.winner-inner.dark{background:#1a1a2a;border-color:#2e2e4e}
+.winner-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px}
+.winner-inner.dark .winner-title{color:var(--gold-light)}
+.winner-sub{font-size:13px;color:var(--text2);margin-bottom:16px}
+.winner-inner.dark .winner-sub{color:#666}
+.winner-player-row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:var(--radius-sm);cursor:pointer;margin-bottom:8px;border:2px solid var(--border);background:var(--bg);transition:all 0.15s}
+.winner-inner.dark .winner-player-row{background:#1e1e2e;border-color:#2e2e4e}
+.winner-player-row:hover{border-color:var(--purple)}
+.winner-inner.dark .winner-player-row:hover{border-color:var(--gold)}
+.winner-player-row.selected{border-color:var(--purple);background:var(--purple-light)}
+.winner-inner.dark .winner-player-row.selected{border-color:var(--gold);background:rgba(201,168,76,0.12)}
+.winner-player-name{font-size:16px;font-weight:700;color:var(--text)}
+.winner-inner.dark .winner-player-name{color:#f0f0f5}
+.winner-player-stat{font-size:13px;color:var(--text2)}
+.winner-inner.dark .winner-player-stat{color:#666}
+.winner-trophy{font-size:22px}
+
+/* PAUSED GAME BANNER */
+.paused-banner{background:var(--amber-bg);border:1.5px solid var(--amber);border-radius:var(--radius);padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px;cursor:pointer}
+.paused-banner-icon{font-size:22px}
+.paused-banner-text{flex:1}
+.paused-banner-title{font-size:14px;font-weight:700;color:var(--amber)}
+.paused-banner-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.paused-banner-btn{background:var(--amber);border:none;border-radius:var(--radius-sm);color:#000;font-weight:700;font-size:13px;padding:7px 13px;cursor:pointer;white-space:nowrap;font-family:inherit}
+
+/* BOARD GAME LIVE TRACKER (fullscreen) */
+.board-tracker{position:fixed;inset:0;z-index:200;background:var(--bg);display:none;flex-direction:column}
+.board-tracker.open{display:flex}
+.board-tracker-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--card);border-bottom:1px solid var(--border);flex-shrink:0;gap:8px}
+.board-tracker-title{font-size:15px;font-weight:700;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.board-tracker-btn{padding:7px 13px;border-radius:var(--radius-sm);border:1px solid var(--border);background:transparent;font-size:12px;font-weight:600;cursor:pointer;color:var(--text);font-family:inherit;white-space:nowrap}
+.board-tracker-btn.primary{background:var(--purple);border-color:var(--purple);color:#fff}
+.board-tracker-btn.warn{background:var(--amber-bg);border-color:var(--amber);color:var(--amber)}
+.board-player-list{flex:1;overflow-y:auto;padding:12px}
+.board-player-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px}
+.board-player-card.leader{border-color:var(--purple)}
+.board-player-card.winner-highlight{border-color:var(--amber);background:var(--amber-bg)}
+.board-player-name-big{font-size:18px;font-weight:700;color:var(--text);flex:1}
+.board-score-display{font-size:36px;font-weight:800;color:var(--purple);min-width:60px;text-align:right}
+.board-score-btns{display:flex;flex-direction:column;gap:5px}
+.board-score-btn{width:38px;height:38px;border-radius:50%;border:1.5px solid var(--border);background:var(--bg);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text);font-weight:300}
+.board-score-btn:active{background:var(--purple-light)}
+.target-bar{padding:10px 12px;background:var(--purple-light);border-top:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:8px;font-size:13px;color:var(--purple);font-weight:600}
+
 </head>
 <body>
 
@@ -315,6 +363,33 @@ input:focus,select:focus,textarea:focus{border-color:var(--purple)}
   <div style="font-size:40px;margin-bottom:8px">🎲</div>
   <div class="spinner"></div>
   <div style="font-size:14px;color:var(--text2)">Loading Game Night...</div>
+</div>
+
+<!-- WINNER SELECT MODAL (light, for board games) -->
+<div class="winner-modal" id="winner-modal" onclick="closeWinnerModalBg(event)">
+  <div class="winner-inner" id="winner-inner" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div class="winner-title" id="winner-modal-title">Who won?</div>
+      <button onclick="closeWinnerModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text2)">×</button>
+    </div>
+    <div class="winner-sub" id="winner-modal-sub">Tap a player to select them as the winner</div>
+    <div id="winner-player-list"></div>
+    <button class="btn btn-primary btn-full" style="margin-top:8px" onclick="confirmWinner()">Confirm &amp; save game</button>
+    <button class="btn btn-full" style="margin-top:6px" onclick="closeWinnerModal()">Keep playing</button>
+  </div>
+</div>
+
+<!-- BOARD GAME LIVE TRACKER -->
+<div class="board-tracker" id="board-tracker">
+  <div class="board-tracker-bar">
+    <div class="board-tracker-title" id="bt-title">Game</div>
+    <button class="board-tracker-btn warn" onclick="pauseBoardGame()">⏸ Pause</button>
+    <button class="board-tracker-btn primary" onclick="endBoardGame()">End game</button>
+  </div>
+  <div class="board-player-list" id="bt-player-list"></div>
+  <div class="target-bar" id="bt-target-bar" style="display:none">
+    🎯 Playing to <span id="bt-target-display">0</span> points
+  </div>
 </div>
 
 <!-- AUTH -->
@@ -367,6 +442,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--purple)}
       <div class="metric"><div class="metric-val" id="stat-players">0</div><div class="metric-lbl">Players</div></div>
     </div>
     <div id="retreat-info"></div>
+    <div id="paused-games-area"></div>
     <div class="section-header">
       <h2>Recent sessions</h2>
       <button class="btn btn-primary btn-sm" onclick="showPage('log')">+ New game</button>
@@ -398,9 +474,13 @@ input:focus,select:focus,textarea:focus{border-color:var(--purple)}
           <label>Is this part of the year-end retreat?</label>
           <select id="is-retreat"><option value="no">No — regular game night</option><option value="yes">Yes — year-end retreat</option></select>
         </div>
+        <div class="form-row">
+          <label>Target score to win (optional)</label>
+          <input type="number" id="target-score" placeholder="e.g. 10 for Catan, leave blank if none" min="1">
+        </div>
       </div>
       <div class="card">
-        <div class="section-header"><h2>Players & scores</h2></div>
+        <div class="section-header"><h2>Players</h2></div>
         <div style="margin-bottom:10px">
           <div style="font-size:12px;color:var(--text2);font-weight:500;margin-bottom:6px">Quick select</div>
           <div class="player-pick-grid" id="log-player-chips"></div>
@@ -426,7 +506,10 @@ input:focus,select:focus,textarea:focus{border-color:var(--purple)}
         </div>
         <div id="optional-fields" style="margin-top:12px"></div>
       </div>
-      <button class="btn btn-primary btn-full" style="margin-bottom:8px" onclick="saveGame()">Save game</button>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <button class="btn btn-primary btn-full" onclick="launchBoardTracker()">🎮 Start live game</button>
+      </div>
+      <button class="btn btn-full" style="margin-bottom:8px;font-size:13px;color:var(--text2)" onclick="saveGameDirectly()">Skip tracker — just log scores</button>
     </div>
   </div>
 
@@ -611,6 +694,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--purple)}
       <span class="mtg-pill" id="mtg-turn-label">Turn 1</span>
       <span class="mtg-pill" id="mtg-format-label">Commander</span>
     </div>
+    <button class="mtg-close-btn" onclick="pauseMtgGame()" style="margin-right:6px">⏸ Pause</button>
     <button class="mtg-close-btn" onclick="endMtgGame()">End game</button>
   </div>
   <div class="mtg-players-grid" id="mtg-players-grid"></div>
@@ -701,6 +785,17 @@ let currentStatTab = 'alltime';
 let customAwards = [];
 let hallOfFame = [];
 let unsubGames = null, unsubPlayers = null, unsubCal = null, unsubAvail = null, unsubHof = null;
+
+// Board game live tracker state
+let boardState = {
+  name:'', date:'', isRetreat:false, targetScore:0,
+  players:[], gameStarted:false
+};
+
+// Winner modal callback
+let winnerModalCallback = null;
+let winnerModalPlayers = [];
+let winnerModalSelected = -1;
 
 // ============================================================
 //  AUTH
@@ -923,6 +1018,29 @@ function renderHome() {
   document.getElementById('stat-nights').textContent = new Set(yearGames.map(g=>g.date)).size;
   document.getElementById('stat-players').textContent = Object.keys(allPlayers).length;
 
+  // Paused games
+  const pausedArea = document.getElementById('paused-games-area');
+  const pausedMtg = loadPausedGame('mtg');
+  const pausedBoard = loadPausedGame('board');
+  let pausedHTML = '';
+  if(pausedMtg) pausedHTML += `<div class="paused-banner" onclick="resumeMtgGame()">
+    <div class="paused-banner-icon">⏸</div>
+    <div class="paused-banner-text">
+      <div class="paused-banner-title">MTG game paused</div>
+      <div class="paused-banner-sub">${pausedMtg.players.map(p=>p.name).join(', ')} · Turn ${pausedMtg.turn}</div>
+    </div>
+    <button class="paused-banner-btn" onclick="event.stopPropagation();resumeMtgGame()">Resume</button>
+  </div>`;
+  if(pausedBoard) pausedHTML += `<div class="paused-banner" onclick="resumeBoardGame()">
+    <div class="paused-banner-icon">⏸</div>
+    <div class="paused-banner-text">
+      <div class="paused-banner-title">${pausedBoard.name} paused</div>
+      <div class="paused-banner-sub">${pausedBoard.players.map(p=>p.name).join(', ')}</div>
+    </div>
+    <button class="paused-banner-btn" onclick="event.stopPropagation();resumeBoardGame()">Resume</button>
+  </div>`;
+  pausedArea.innerHTML = pausedHTML;
+
   const retreatGames = allGames.filter(g=>g.isRetreat);
   if (retreatGames.length) {
     document.getElementById('retreat-info').innerHTML = `<div class="retreat-banner"><div style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:2px">🏕 Year-end retreat</div><div style="font-size:15px;font-weight:600">${retreatGames.length} games logged</div></div>`;
@@ -1065,7 +1183,9 @@ function renderOptional() {
   document.getElementById('optional-fields').innerHTML = fields.join('');
 }
 
-async function saveGame() {
+async function saveGame() { await saveGameDirectly(); }
+
+async function saveGameDirectly() {
   const name = document.getElementById('game-name').value.trim();
   const date = document.getElementById('game-date').value;
   if (!name) return toast('Enter a game name');
@@ -1092,6 +1212,198 @@ async function saveGame() {
     showPage('home');
   } catch(e) { toast('Error saving: '+e.message); }
 }
+
+// Launch board game into live tracker
+function launchBoardTracker() {
+  const name = document.getElementById('game-name').value.trim();
+  if (!name) return toast('Enter a game name');
+  if (!logPlayers.some(p=>p.name)) return toast('Add at least one player');
+  const target = parseInt(document.getElementById('target-score').value)||0;
+  boardState = {
+    name,
+    date: document.getElementById('game-date').value,
+    isRetreat: document.getElementById('is-retreat').value === 'yes',
+    targetScore: target,
+    players: logPlayers.filter(p=>p.name).map(p=>({name:p.name,score:0})),
+    gameStarted: true
+  };
+  clearPausedGame('board');
+  openBoardTracker();
+}
+
+function openBoardTracker() {
+  document.getElementById('bt-title').textContent = boardState.name;
+  const tb = document.getElementById('bt-target-bar');
+  if(boardState.targetScore>0){
+    tb.style.display='flex';
+    document.getElementById('bt-target-display').textContent = boardState.targetScore;
+  } else tb.style.display='none';
+  document.getElementById('board-tracker').classList.add('open');
+  renderBoardPlayers();
+}
+
+function renderBoardPlayers() {
+  const el = document.getElementById('bt-player-list');
+  if(!boardState.players.length){el.innerHTML='';return;}
+  const maxScore = Math.max(...boardState.players.map(p=>p.score));
+  const target = boardState.targetScore;
+  el.innerHTML = boardState.players.map((p,i)=>{
+    const isLeader = p.score===maxScore && p.score>0;
+    const isWinner = target>0 && p.score>=target;
+    return `<div class="board-player-card${isWinner?' winner-highlight':isLeader?' leader':''}">
+      <div style="flex:1">
+        <div class="board-player-name-big">${p.name}</div>
+        ${isWinner?'<div style="font-size:12px;color:var(--amber);font-weight:600">🏆 Reached target!</div>':isLeader?'<div style="font-size:12px;color:var(--purple);font-weight:600">Leading</div>':''}
+      </div>
+      <div class="board-score-btns">
+        <button class="board-score-btn" ontouchstart="startBoardHold(${i},1);event.preventDefault()" ontouchend="stopBoardHold()" onmousedown="startBoardHold(${i},1)" onmouseup="stopBoardHold()" onmouseleave="stopBoardHold()">+</button>
+        <button class="board-score-btn" ontouchstart="startBoardHold(${i},-1);event.preventDefault()" ontouchend="stopBoardHold()" onmousedown="startBoardHold(${i},-1)" onmouseup="stopBoardHold()" onmouseleave="stopBoardHold()">−</button>
+      </div>
+      <div class="board-score-display">${p.score}</div>
+    </div>`;
+  }).join('');
+  // Auto-trigger winner prompt if target reached (only once)
+  if(target>0 && !boardState._winnerPrompted){
+    const reachedTarget = boardState.players.filter(p=>p.score>=target);
+    if(reachedTarget.length>0){
+      boardState._winnerPrompted = true;
+      setTimeout(()=>endBoardGame(true), 300);
+    }
+  }
+}
+
+let boardHoldTimer=null, boardHoldInterval=null, boardHoldActive=false;
+function startBoardHold(idx,dir){
+  if(boardHoldActive)return;
+  boardHoldActive=true;
+  boardState.players[idx].score=Math.max(0,boardState.players[idx].score+dir);
+  renderBoardPlayers();
+  boardHoldTimer=setTimeout(()=>{boardHoldInterval=setInterval(()=>{boardState.players[idx].score=Math.max(0,boardState.players[idx].score+dir);renderBoardPlayers();},150);},500);
+}
+function stopBoardHold(){
+  clearTimeout(boardHoldTimer);clearInterval(boardHoldInterval);
+  boardHoldTimer=null;boardHoldInterval=null;
+  setTimeout(()=>{boardHoldActive=false;},50);
+}
+
+function pauseBoardGame() {
+  savePausedGame('board', boardState);
+  document.getElementById('board-tracker').classList.remove('open');
+  toast('Game paused — resume from home screen');
+  showPage('home');
+}
+
+function resumeBoardGame() {
+  const saved = loadPausedGame('board');
+  if(!saved) return;
+  boardState = saved;
+  boardState._winnerPrompted = false;
+  openBoardTracker();
+}
+
+function endBoardGame(autoTriggered) {
+  // Show winner selection modal
+  const players = boardState.players;
+  const maxScore = Math.max(...players.map(p=>p.score));
+  const likely = players.findIndex(p=>p.score===maxScore);
+  openWinnerModal(
+    players.map(p=>({name:p.name, stat:`${p.score} pts`})),
+    likely,
+    false,
+    async (winnerIdx) => {
+      const winner = players[winnerIdx];
+      const game = {
+        name:boardState.name, date:boardState.date, isMtg:false,
+        isRetreat:boardState.isRetreat,
+        year:new Date(boardState.date+'T00:00:00').getFullYear(),
+        players:players.map(p=>({name:p.name, score:p.score, winner:p.name===winner.name})),
+        winner: winner.name,
+        loggedBy:currentUser.uid, loggedByName:currentProfile?.name||'Unknown',
+        createdAt:firebase.firestore.FieldValue.serverTimestamp()
+      };
+      try {
+        await db.collection('games').add(game);
+        await updatePlayerStats(game, winner);
+        clearPausedGame('board');
+        document.getElementById('board-tracker').classList.remove('open');
+        toast('Game saved! 🎉');
+        showPage('home');
+      } catch(e){ toast('Error: '+e.message); }
+    },
+    autoTriggered ? `${boardState.players.find(p=>p.score>=boardState.targetScore)?.name} reached ${boardState.targetScore} points — confirm the winner` : null
+  );
+}
+
+// ============================================================
+//  WINNER MODAL
+// ============================================================
+function openWinnerModal(players, defaultIdx, isDark, callback, customSubtitle) {
+  winnerModalCallback = callback;
+  winnerModalPlayers = players;
+  winnerModalSelected = defaultIdx>=0 ? defaultIdx : 0;
+  const inner = document.getElementById('winner-inner');
+  inner.className = 'winner-inner'+(isDark?' dark':'');
+  document.getElementById('winner-modal-sub').textContent = customSubtitle || 'Tap a player to select the winner';
+  renderWinnerPlayerList();
+  document.getElementById('winner-modal').classList.add('open');
+}
+
+function renderWinnerPlayerList() {
+  document.getElementById('winner-player-list').innerHTML = winnerModalPlayers.map((p,i)=>`
+    <div class="winner-player-row${winnerModalSelected===i?' selected':''}" onclick="selectWinner(${i})">
+      <div>
+        <div class="winner-player-name">${p.name}</div>
+        <div class="winner-player-stat">${p.stat||''}</div>
+      </div>
+      <div class="winner-trophy">${winnerModalSelected===i?'🏆':''}</div>
+    </div>`).join('');
+}
+
+function selectWinner(i) {
+  winnerModalSelected = i;
+  renderWinnerPlayerList();
+}
+
+async function confirmWinner() {
+  if(winnerModalSelected<0) return toast('Select a winner');
+  closeWinnerModal();
+  if(winnerModalCallback) await winnerModalCallback(winnerModalSelected);
+}
+
+function closeWinnerModal() { document.getElementById('winner-modal').classList.remove('open'); }
+function closeWinnerModalBg(e) { if(e.target===document.getElementById('winner-modal')) closeWinnerModal(); }
+
+// ============================================================
+//  PAUSE / RESUME HELPERS
+// ============================================================
+function savePausedGame(type, state) {
+  try { localStorage.setItem('paused_'+type, JSON.stringify(state)); } catch(e){}
+}
+function loadPausedGame(type) {
+  try { const s=localStorage.getItem('paused_'+type); return s?JSON.parse(s):null; } catch(e){ return null; }
+}
+function clearPausedGame(type) {
+  try { localStorage.removeItem('paused_'+type); } catch(e){}
+}
+
+// MTG pause/resume
+function pauseMtgGame() {
+  savePausedGame('mtg', mtgState);
+  document.getElementById('mtg-tracker').classList.remove('open');
+  toast('MTG game paused — resume from home screen');
+  showPage('home');
+}
+
+function resumeMtgGame() {
+  const saved = loadPausedGame('mtg');
+  if(!saved) return;
+  mtgState = saved;
+  document.getElementById('mtg-tracker').classList.add('open');
+  document.getElementById('mtg-format-label').textContent = mtgState.format==='commander'?'Commander':'Draft/Standard';
+  renderMtgTracker();
+}
+
+
 
 function getOptVal(id) {
   const el = document.getElementById(id);
@@ -1504,26 +1816,41 @@ function randomizeMtgTurnOrder(){
 function resetMtgGame(){ mtgState.players.forEach(p=>{p.life=mtgState.startLife;p.poison=0;p.cmdDmg={};p.eliminated=false;}); mtgState.turn=1; renderMtgTracker(); }
 
 async function endMtgGame() {
-  if(!confirm('End game and save results?')) return;
-  document.getElementById('mtg-tracker').classList.remove('open');
+  // Build suggested winner: last surviving player, or highest life
   const surviving = mtgState.players.filter(p=>!p.eliminated);
-  const winner = surviving.length===1 ? surviving[0] : mtgState.players.reduce((a,b)=>a.life>b.life?a:b);
-  const game = {
-    name:'Magic: The Gathering', date:todayStr(), isMtg:true, isRetreat:false,
-    format:mtgState.format, year:new Date().getFullYear(),
-    players:mtgState.players.map(p=>({name:p.name,score:p.life,life:p.life,eliminated:p.eliminated,cmdDmg:p.cmdDmg||{},poison:p.poison||0})),
-    loggedBy:currentUser.uid, loggedByName:currentProfile?.name||'Unknown',
-    createdAt:firebase.firestore.FieldValue.serverTimestamp()
-  };
-  try {
-    await db.collection('games').add(game);
-    const sorted = [...game.players].sort((a,b)=>b.score-a.score);
-    await updatePlayerStats(game, sorted[0]);
-    const uid = findPlayerUid(winner.name);
-    if(uid) await db.collection('players').doc(uid).update({mtgWins:firebase.firestore.FieldValue.increment(1),mtgGames:firebase.firestore.FieldValue.increment(mtgState.players.length)});
-    toast('Game saved! 🧙');
-  } catch(e) { toast('Error: '+e.message); }
-  showPage('home');
+  const suggestedWinner = surviving.length===1 ? surviving[0]
+    : mtgState.players.reduce((a,b)=>a.life>b.life?a:b);
+  const suggestedIdx = mtgState.players.indexOf(suggestedWinner);
+
+  openWinnerModal(
+    mtgState.players.map(p=>({
+      name: p.name,
+      stat: p.eliminated ? '💀 Eliminated' : `${p.life} life remaining`
+    })),
+    suggestedIdx,
+    true, // dark theme
+    async (winnerIdx) => {
+      const winner = mtgState.players[winnerIdx];
+      document.getElementById('mtg-tracker').classList.remove('open');
+      const game = {
+        name:'Magic: The Gathering', date:todayStr(), isMtg:true, isRetreat:false,
+        format:mtgState.format, year:new Date().getFullYear(),
+        players:mtgState.players.map(p=>({name:p.name,score:p.life,life:p.life,eliminated:p.eliminated,cmdDmg:p.cmdDmg||{},poison:p.poison||0})),
+        winner: winner.name,
+        loggedBy:currentUser.uid, loggedByName:currentProfile?.name||'Unknown',
+        createdAt:firebase.firestore.FieldValue.serverTimestamp()
+      };
+      try {
+        await db.collection('games').add(game);
+        await updatePlayerStats(game, winner);
+        const uid = findPlayerUid(winner.name);
+        if(uid) await db.collection('players').doc(uid).update({mtgWins:firebase.firestore.FieldValue.increment(1),mtgGames:firebase.firestore.FieldValue.increment(mtgState.players.length)});
+        clearPausedGame('mtg');
+        toast('Game saved! 🧙');
+      } catch(e){ toast('Error: '+e.message); }
+      showPage('home');
+    }
+  );
 }
 
 // ============================================================
